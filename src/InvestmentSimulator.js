@@ -16,6 +16,7 @@ const InvestmentSimulator = () => {
     investmentTimeYears: 15,
     monthlyContribution: 10000,
     priceGrowthRate: 3.5,
+    rentIncomeYearlyIncrease: 100
   });
 
   const [results, setResults] = useState({
@@ -24,7 +25,9 @@ const InvestmentSimulator = () => {
     totalMonthlyPassiveIncome: 0,
     totalLoansLeft: 0,
     apartments: [],
-    monthlyDetails:[]
+    monthlyDetails:[],
+    totalApartmentsAfterSellingApartmentsForCoveringLoans:0,
+    moneyLeftWithCoveringLoans:0
   });
 
   const maxLoanToApartmentPriceRatio = 0.9
@@ -39,6 +42,10 @@ const InvestmentSimulator = () => {
 
   const handleNetRentIncomeChange = (event) => {
     setInputs(inputs => ({ ...inputs, netRentIncome: parseFloat(event.target.value) }));
+  };
+
+  const hanldeRentIncomeYearlyIncrease = (event) => {
+    setInputs(inputs => ({ ...inputs, rentIncomeYearlyIncrease: parseFloat(event.target.value) }));
   };
 
   const handleLoanAmountChange = (event) => {
@@ -81,7 +88,9 @@ const InvestmentSimulator = () => {
 
   const updateApartmentMonthlyIncome = (month,apartments) => {
     apartments.forEach(apartment => {
-      apartment.netRentIncome = inputs.netRentIncome - (month >= apartment.loanEndTime ? 0 : apartment.monthlyLoanPayment)
+      let loanReturn = (month >= apartment.loanEndTime ? 0 : apartment.monthlyLoanPayment)
+      let rentIncome = inputs.netRentIncome + Math.floor((month-apartment.boughtMonth)/12)*inputs.rentIncomeYearlyIncrease
+      apartment.netRentIncome =  rentIncome - loanReturn
     });
   }
 
@@ -123,7 +132,7 @@ const InvestmentSimulator = () => {
         );
         
         
-        let yearsHeld = (totalMonths+1-month)/12; // Assume the apartment is held for the duration of the loan
+        let yearsHeld = (totalMonths+1-month)/12;
         let priceAfterGrowth = apartmentPrice * Math.pow(1 + (priceGrowthRate / 100), yearsHeld);
   
 
@@ -150,14 +159,33 @@ const InvestmentSimulator = () => {
       month++;
     }
 
+    const totalValue = apartments.reduce((acc, apt) => acc + apt.priceAfterGrowth, 0)
+    const totalMonthlyPassiveIncome = apartments.map(a => a.netRentIncome).reduce((a, b) => a + b, 0)
+    const totalLoansLeft = apartments.reduce((acc, apt) => acc + apt.loanBalance, 0)
+
+    let numOfApartmentsToSellForCoveringLoan = 0
+    let apartmentsToSellTotalPrice = 0
+    for(let i = 0 ; i < apartments.length ; i++){
+      if(apartmentsToSellTotalPrice+money >= totalLoansLeft){
+        break;
+      }
+      apartmentsToSellTotalPrice+=apartments[i].priceAfterGrowth
+      numOfApartmentsToSellForCoveringLoan++
+    }
+    const totalApartmentsAfterSellingApartmentsForCoveringLoans = totalApartments - numOfApartmentsToSellForCoveringLoan
+    const moneyLeftWithCoveringLoan = apartmentsToSellTotalPrice + money - totalLoansLeft
+    
+
     setResults({
       totalApartments,
-      totalValue: apartments.reduce((acc, apt) => acc + apt.priceAfterGrowth, 0),
-      totalMonthlyPassiveIncome: apartments.map(a => a.netRentIncome).reduce((a, b) => a + b, 0),
-      totalLoansLeft: apartments.reduce((acc, apt) => acc + apt.loanBalance, 0), 
+      totalValue: totalValue,
+      totalMonthlyPassiveIncome: totalMonthlyPassiveIncome,
+      totalLoansLeft: totalLoansLeft,
       apartments, 
       money:money,
-      monthlyDetails:monthlyDetails
+      monthlyDetails:monthlyDetails,
+      totalApartmentsAfterSellingApartmentsForCoveringLoans:totalApartmentsAfterSellingApartmentsForCoveringLoans,
+      moneyLeftWithCoveringLoans:moneyLeftWithCoveringLoan
     });
   };
 
@@ -176,6 +204,10 @@ const InvestmentSimulator = () => {
       <div className="input-group">
         <label>Net Rent Income</label>
         <input type="number" name="netRentIncome" value={inputs.netRentIncome} onChange={handleNetRentIncomeChange} />
+      </div>
+      <div className="input-group">
+        <label>Ret Income Yearly Increase</label>
+        <input type="number" name="netRentIncome" value={inputs.rentIncomeYearlyIncrease} onChange={hanldeRentIncomeYearlyIncrease} />
       </div>
       <div className="input-group">
         <label>Loan Amount</label>
@@ -202,7 +234,6 @@ const InvestmentSimulator = () => {
         <input type="number" name="priceGrowthRate" value={inputs.priceGrowthRate} onChange={handlePriceGrowthRateChange} />
       </div>
     </div>
-      <button onClick={simulateInvestment}>Simulate</button>
       <h2>Results</h2>
       <div className="flex-table results-table">
         <div className="flex-row">
@@ -228,6 +259,14 @@ const InvestmentSimulator = () => {
         <div className="flex-row">
           <div className="cell">Money:</div>
           <div className="cell">${results?.money?.toLocaleString() || 0}</div>
+        </div>
+        <div className="flex-row">
+          <div className="cell">Total Apartments After Selling Apartments For Covering Loans :</div>
+          <div className="cell">${results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() || 0}</div>
+        </div>
+        <div className="flex-row">
+          <div className="cell">Money Left After Covering Loan With Apartments :</div>
+          <div className="cell">${results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}</div>
         </div>
       </div>
       <br></br>

@@ -13,7 +13,6 @@
   }
 }
 
-
 .App-link {
   color: #61dafb;
 }
@@ -27,14 +26,11 @@
   }
 }
 
-
-
 .results {
   margin-left: 0; /* Align to the left */
   font-weight: bold; /* Make text bold */
   text-align: left;
 }
-
 
 .flex-table {
   display: flex;
@@ -86,4 +82,22 @@ input[type="number"] {
   padding: 10px;
   border: 1px solid #bbb; /* Slightly lighter borders for a softer look */
   text-align: left;
+}
+
+.input-table {
+  margin: 0 auto;
+}
+
+.input-table table {
+  border-collapse: collapse;
+  width: 50%;
+}
+
+.input-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.input-table label {
+  font-weight: bold;
 }

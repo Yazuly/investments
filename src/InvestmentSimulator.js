@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from 'react';
-
+import React, { useEffect, useState } from "react";
 
 import "./App.css"; // Make sure this path matches your actual CSS file location
-
-
 
 const InvestmentSimulator = () => {
   const [inputs, setInputs] = useState({
@@ -16,7 +13,7 @@ const InvestmentSimulator = () => {
     investmentTimeYears: 15,
     monthlyContribution: 10000,
     priceGrowthRate: 3.5,
-    rentIncomeYearlyIncrease: 100
+    rentIncomeYearlyIncrease: 100,
   });
 
   const [results, setResults] = useState({
@@ -25,95 +22,135 @@ const InvestmentSimulator = () => {
     totalMonthlyPassiveIncome: 0,
     totalLoansLeft: 0,
     apartments: [],
-    monthlyDetails:[],
-    totalApartmentsAfterSellingApartmentsForCoveringLoans:0,
-    moneyLeftWithCoveringLoans:0
+    monthlyDetails: [],
+    totalApartmentsAfterSellingApartmentsForCoveringLoans: 0,
+    moneyLeftWithCoveringLoans: 0,
   });
 
-  const maxLoanToApartmentPriceRatio = 0.9
+  const maxLoanToApartmentPriceRatio = 0.9;
 
   const handleInitialMoneyChange = (event) => {
-    setInputs(inputs => ({ ...inputs, initialMoney: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      initialMoney: parseFloat(event.target.value),
+    }));
   };
 
   const handleApartmentPriceChange = (event) => {
-    setInputs(inputs => ({ ...inputs, apartmentPrice: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      apartmentPrice: parseFloat(event.target.value),
+    }));
   };
 
   const handleNetRentIncomeChange = (event) => {
-    setInputs(inputs => ({ ...inputs, netRentIncome: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      netRentIncome: parseFloat(event.target.value),
+    }));
   };
 
   const hanldeRentIncomeYearlyIncrease = (event) => {
-    setInputs(inputs => ({ ...inputs, rentIncomeYearlyIncrease: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      rentIncomeYearlyIncrease: parseFloat(event.target.value),
+    }));
   };
 
   const handleLoanAmountChange = (event) => {
-    const value = Math.min(parseFloat(event.target.value), inputs.apartmentPrice * maxLoanToApartmentPriceRatio);
-    setInputs(inputs => ({ ...inputs, loanAmount: value }));
+    const value = Math.min(
+      parseFloat(event.target.value),
+      inputs.apartmentPrice * maxLoanToApartmentPriceRatio
+    );
+    setInputs((inputs) => ({ ...inputs, loanAmount: value }));
   };
 
   const handleLoanInterestRateChange = (event) => {
     const value = Math.max(parseFloat(event.target.value), 1);
-    setInputs(inputs => ({ ...inputs, loanInterestRate: value}));
+    setInputs((inputs) => ({ ...inputs, loanInterestRate: value }));
   };
 
   const handleLoanTimeYearsChange = (event) => {
     const value = Math.max(parseFloat(event.target.value), 1);
-    setInputs(inputs => ({ ...inputs, loanTimeYears: value }));
+    setInputs((inputs) => ({ ...inputs, loanTimeYears: value }));
   };
 
   const handleInvestmentTimeYearsChange = (event) => {
-    setInputs(inputs => ({ ...inputs, investmentTimeYears: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      investmentTimeYears: parseFloat(event.target.value),
+    }));
   };
 
   const handleMonthlyContributionChange = (event) => {
-    setInputs(inputs => ({ ...inputs, monthlyContribution: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      monthlyContribution: parseFloat(event.target.value),
+    }));
   };
 
   const handlePriceGrowthRateChange = (event) => {
-    setInputs(inputs => ({ ...inputs, priceGrowthRate: parseFloat(event.target.value) }));
+    setInputs((inputs) => ({
+      ...inputs,
+      priceGrowthRate: parseFloat(event.target.value),
+    }));
   };
 
   useEffect(() => {
     simulateInvestment();
   }, [inputs]); // Dependency array includes `inputs`, so the effect runs any time `inputs` changes
 
-
-  const calculateLoanPaymentsDetails = (loanAmount, loanInterestRate, years) => {
+  const calculateLoanPaymentsDetails = (
+    loanAmount,
+    loanInterestRate,
+    years
+  ) => {
     const monthlyRate = loanInterestRate / 12 / 100;
     const numberOfPayments = years * 12;
-    const monthlyLoanPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -numberOfPayments))
-    return {monthlyLoanPayment, monthlyRate,numberOfPayments}
+    const monthlyLoanPayment =
+      (loanAmount * monthlyRate) /
+      (1 - Math.pow(1 + monthlyRate, -numberOfPayments));
+    return { monthlyLoanPayment, monthlyRate, numberOfPayments };
   };
 
-  const calculateLoanPayments = (loanAmount,monthlyLoanPayment, monthlyRate, numberOfPayments) => {
-    if(monthlyLoanPayment === 0){
-      return undefined
+  const calculateLoanPayments = (
+    loanAmount,
+    monthlyLoanPayment,
+    monthlyRate,
+    numberOfPayments
+  ) => {
+    if (monthlyLoanPayment === 0) {
+      return undefined;
     }
 
     const payments = [];
     let remainingPrincipal = loanAmount;
     for (let i = 0; i < numberOfPayments; i++) {
-      
       const interestPayment = remainingPrincipal * monthlyRate;
       const principalPayment = monthlyLoanPayment - interestPayment;
       remainingPrincipal -= principalPayment;
-      
-      payments.push({ remainingPrincipal, principal: principalPayment, interest: interestPayment });
+
+      payments.push({
+        remainingPrincipal,
+        principal: principalPayment,
+        interest: interestPayment,
+      });
     }
-  
+
     return payments;
   };
-  
 
-  const updateApartmentMonthlyIncome = (month,apartments) => {
-    apartments.forEach(apartment => {
-      let loanReturn = (month >= apartment.loanEndTime ? 0 : apartment.monthlyLoanPayment)
-      let rentIncome = inputs.netRentIncome + Math.floor((month-apartment.boughtMonth)/12)*inputs.rentIncomeYearlyIncrease
-      apartment.netRentIncome =  rentIncome - loanReturn
+  const updateApartmentMonthlyIncome = (month, apartments) => {
+    apartments.forEach((apartment) => {
+      let loanReturn =
+        month >= apartment.loanEndTime ? 0 : apartment.monthlyLoanPayment;
+      let rentIncome =
+        inputs.netRentIncome +
+        Math.floor((month - apartment.boughtMonth) / 12) *
+          inputs.rentIncomeYearlyIncrease;
+      apartment.netRentIncome = rentIncome - loanReturn;
     });
-  }
+  };
 
   const simulateInvestment = () => {
     let {
@@ -127,38 +164,46 @@ const InvestmentSimulator = () => {
       monthlyContribution,
       priceGrowthRate,
     } = inputs;
-  
+
     let month = 1;
     const totalMonths = investmentTimeYears * 12;
     let money = initialMoney;
     let totalApartments = 0;
     let apartments = [];
-    let monthlyDetails = [] 
+    let monthlyDetails = [
+      {
+        month: 0,
+        money,
+        totalIncome: 0,
+        incomeFromRent: 0,
+        numOfApartments: 0,
+      },
+    ];
 
     while (month <= totalMonths) {
-      updateApartmentMonthlyIncome(month,apartments)
-      
-      let incomeFromRent = apartments.reduce((sum, apt) => sum + apt.netRentIncome, 0);
-      let totalIncome = monthlyContribution + incomeFromRent
-      money += totalIncome
+      while (money + loanAmount >= apartmentPrice) {
+        let yearsHeld = (totalMonths + 1 - month) / 12;
+        let priceAfterGrowth =
+          apartmentPrice * Math.pow(1 + priceGrowthRate / 100, yearsHeld);
 
-      monthlyDetails.push({month,money, totalIncome, incomeFromRent, numOfApartments:apartments.length})
-      
-      
-      while(money + loanAmount >= apartmentPrice) {            
-        let yearsHeld = (totalMonths+1-month)/12;
-        let priceAfterGrowth = apartmentPrice * Math.pow(1 + (priceGrowthRate / 100), yearsHeld);
-  
+        const { monthlyLoanPayment, monthlyRate, numberOfPayments } =
+          calculateLoanPaymentsDetails(
+            loanAmount,
+            loanInterestRate,
+            loanTimeYears
+          );
 
-        const  {monthlyLoanPayment, monthlyRate,numberOfPayments} = calculateLoanPaymentsDetails(loanAmount,
-          loanInterestRate,
-          loanTimeYears)
-
-        let loanEndTime = month + loanTimeYears * 12
-        const payments =  calculateLoanPayments(loanAmount,monthlyLoanPayment, monthlyRate, numberOfPayments)
-        const remainingPrincipal = !!payments && loanEndTime > totalMonths ? 
-          payments[totalMonths-month].remainingPrincipal : 
-          0
+        let loanEndTime = month - 1 + loanTimeYears * 12;
+        const payments = calculateLoanPayments(
+          loanAmount,
+          monthlyLoanPayment,
+          monthlyRate,
+          numberOfPayments
+        );
+        const remainingPrincipal =
+          !!payments && loanEndTime > totalMonths
+            ? payments[totalMonths - month].remainingPrincipal
+            : 0;
 
         let newApartment = {
           boughtMonth: month,
@@ -173,90 +218,217 @@ const InvestmentSimulator = () => {
 
         apartments.push(newApartment);
 
-        money -= (apartmentPrice-loanAmount);
+        money -= apartmentPrice - loanAmount;
         totalApartments++;
       }
-      
+
+      updateApartmentMonthlyIncome(month, apartments);
+      let incomeFromRent = apartments.reduce(
+        (sum, apt) => sum + apt.netRentIncome,
+        0
+      );
+      let totalIncome = monthlyContribution + incomeFromRent;
+      money += totalIncome;
+      monthlyDetails.push({
+        month,
+        money,
+        totalIncome,
+        incomeFromRent,
+        numOfApartments: apartments.length,
+      });
 
       month++;
     }
 
-    const totalValue = apartments.reduce((acc, apt) => acc + apt.priceAfterGrowth, 0)
-    const totalMonthlyPassiveIncome = apartments.map(a => a.netRentIncome).reduce((a, b) => a + b, 0)
-    const totalLoansPrincipleLeft = apartments.reduce((acc, apt) => acc + apt.remainingPrincipal, 0)
-    
+    const totalValue = apartments.reduce(
+      (acc, apt) => acc + apt.priceAfterGrowth,
+      0
+    );
+    const totalMonthlyPassiveIncome = apartments
+      .map((a) => a.netRentIncome)
+      .reduce((a, b) => a + b, 0);
+    const totalLoansPrincipleLeft = apartments.reduce(
+      (acc, apt) => acc + apt.remainingPrincipal,
+      0
+    );
 
-    let numOfApartmentsToSellForCoveringLoan = 0
-    let apartmentsToSellTotalPrice = 0
-    for(let i = 0 ; i < apartments.length ; i++){
-      if(apartmentsToSellTotalPrice+money >= totalLoansPrincipleLeft){
+    let numOfApartmentsToSellForCoveringLoan = 0;
+    let apartmentsToSellTotalPrice = 0;
+    for (let i = 0; i < apartments.length; i++) {
+      if (apartmentsToSellTotalPrice + money >= totalLoansPrincipleLeft) {
         break;
       }
-      apartmentsToSellTotalPrice+=apartments[i].priceAfterGrowth
-      numOfApartmentsToSellForCoveringLoan++
+      apartmentsToSellTotalPrice += apartments[i].priceAfterGrowth;
+      numOfApartmentsToSellForCoveringLoan++;
     }
-    const totalApartmentsAfterSellingApartmentsForCoveringLoans = totalApartments - numOfApartmentsToSellForCoveringLoan
-    const moneyLeftWithCoveringLoans = apartmentsToSellTotalPrice + money - totalLoansPrincipleLeft
-    
+    const totalApartmentsAfterSellingApartmentsForCoveringLoans =
+      totalApartments - numOfApartmentsToSellForCoveringLoan;
+    const moneyLeftWithCoveringLoans =
+      apartmentsToSellTotalPrice + money - totalLoansPrincipleLeft;
 
     setResults({
       totalApartments,
       totalValue,
       totalMonthlyPassiveIncome,
       totalLoansPrincipleLeft,
-      apartments, 
-      money:money,
-      monthlyDetails:monthlyDetails,
+      apartments,
+      money: money,
+      monthlyDetails: monthlyDetails,
       totalApartmentsAfterSellingApartmentsForCoveringLoans,
-      moneyLeftWithCoveringLoans
+      moneyLeftWithCoveringLoans,
     });
   };
 
   return (
     <div>
       <h1>Real Estate Investment Simulator</h1>
-      <div>
-      <div className="input-group">
-        <label>Initial Money</label>
-        <input type="number" name="initialMoney" value={inputs.initialMoney} onChange={handleInitialMoneyChange} />
+
+      <div class="input-table">
+        <table>
+          <tr>
+            <td>
+              <label for="initialMoney">Initial Money</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="initialMoney"
+                name="initialMoney"
+                value={inputs.initialMoney}
+                onChange={handleInitialMoneyChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="apartmentPrice">Apartment Price</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="apartmentPrice"
+                name="apartmentPrice"
+                value={inputs.apartmentPrice}
+                onChange={handleApartmentPriceChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="netRentIncome">Net Rent Income</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="netRentIncome"
+                name="netRentIncome"
+                value={inputs.netRentIncome}
+                onChange={handleNetRentIncomeChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="rentIncomeYearlyIncrease">
+                Rent Income Yearly Increase
+              </label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="rentIncomeYearlyIncrease"
+                name="rentIncomeYearlyIncrease"
+                value={inputs.rentIncomeYearlyIncrease}
+                onChange={hanldeRentIncomeYearlyIncrease}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="loanAmount">Loan Amount</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="loanAmount"
+                name="loanAmount"
+                value={inputs.loanAmount}
+                onChange={handleLoanAmountChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="loanInterestRate">Loan Interest Rate</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="loanInterestRate"
+                name="loanInterestRate"
+                value={inputs.loanInterestRate}
+                onChange={handleLoanInterestRateChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="loanTimeYears">Loan Time Years</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="loanTimeYears"
+                name="loanTimeYears"
+                value={inputs.loanTimeYears}
+                onChange={handleLoanTimeYearsChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="investmentTimeYears">Investment Time Years</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="investmentTimeYears"
+                name="investmentTimeYears"
+                value={inputs.investmentTimeYears}
+                onChange={handleInvestmentTimeYearsChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="monthlyContribution">Monthly Contribution</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="monthlyContribution"
+                name="monthlyContribution"
+                value={inputs.monthlyContribution}
+                onChange={handleMonthlyContributionChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="priceGrowthRate">Price Growth Rate</label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="priceGrowthRate"
+                name="priceGrowthRate"
+                value={inputs.priceGrowthRate}
+                onChange={handlePriceGrowthRateChange}
+              />
+            </td>
+          </tr>
+        </table>
       </div>
-      <div className="input-group">
-        <label>Apartment Price</label>
-        <input type="number" name="apartmentPrice" value={inputs.apartmentPrice} onChange={handleApartmentPriceChange} />
-      </div>
-      <div className="input-group">
-        <label>Net Rent Income</label>
-        <input type="number" name="netRentIncome" value={inputs.netRentIncome} onChange={handleNetRentIncomeChange} />
-      </div>
-      <div className="input-group">
-        <label>Ret Income Yearly Increase</label>
-        <input type="number" name="netRentIncome" value={inputs.rentIncomeYearlyIncrease} onChange={hanldeRentIncomeYearlyIncrease} />
-      </div>
-      <div className="input-group">
-        <label>Loan Amount</label>
-        <input type="number" name="loanAmount" value={inputs.loanAmount} onChange={handleLoanAmountChange} />
-      </div>
-      <div className="input-group">
-        <label>Loan Interest Rate</label>
-        <input type="number" name="loanInterestRate" value={inputs.loanInterestRate} onChange={handleLoanInterestRateChange} />
-      </div>
-      <div className="input-group">
-        <label>Loan Time Years</label>
-        <input type="number" name="loanTimeYears" value={inputs.loanTimeYears} onChange={handleLoanTimeYearsChange} />
-      </div>
-      <div className="input-group">
-        <label>Investment Time Years</label>
-        <input type="number" name="investmentTimeYears" value={inputs.investmentTimeYears} onChange={handleInvestmentTimeYearsChange} />
-      </div>
-      <div className="input-group">
-        <label>Monthly Contribution</label>
-        <input type="number" name="monthlyContribution" value={inputs.monthlyContribution} onChange={handleMonthlyContributionChange} />
-      </div>
-      <div className="input-group">
-        <label>Price Growth Rate</label>
-        <input type="number" name="priceGrowthRate" value={inputs.priceGrowthRate} onChange={handlePriceGrowthRateChange} />
-      </div>
-    </div>
       <h2>Results</h2>
       <div className="flex-table results-table">
         <div className="flex-row">
@@ -269,27 +441,46 @@ const InvestmentSimulator = () => {
         </div>
         <div className="flex-row">
           <div className="cell">Total Monthly Passive Income:</div>
-          <div className="cell">${results.totalMonthlyPassiveIncome.toLocaleString()}</div>
+          <div className="cell">
+            ${results.totalMonthlyPassiveIncome.toLocaleString()}
+          </div>
         </div>
         <div className="flex-row">
           <div className="cell">Total Loans Principle Left to Pay:</div>
-          <div className="cell">${results.totalLoansPrincipleLeft?.toLocaleString()}</div>
+          <div className="cell">
+            ${results.totalLoansPrincipleLeft?.toLocaleString()}
+          </div>
         </div>
         <div className="flex-row">
           <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
-          <div className="cell">${(results.totalValue-results.totalLoansPrincipleLeft)?.toLocaleString()}</div>
+          <div className="cell">
+            $
+            {(
+              results.totalValue - results.totalLoansPrincipleLeft
+            )?.toLocaleString()}
+          </div>
         </div>
         <div className="flex-row">
           <div className="cell">Money:</div>
           <div className="cell">${results?.money?.toLocaleString() || 0}</div>
         </div>
         <div className="flex-row">
-          <div className="cell">Total Apartments After Selling Apartments For Covering Loans :</div>
-          <div className="cell">${results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() || 0}</div>
+          <div className="cell">
+            Total Apartments After Selling Apartments For Covering Loans :
+          </div>
+          <div className="cell">
+            $
+            {results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() ||
+              0}
+          </div>
         </div>
         <div className="flex-row">
-          <div className="cell">Money Left After Covering Loan With Apartments :</div>
-          <div className="cell">${results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}</div>
+          <div className="cell">
+            Money Left After Covering Loan With Apartments :
+          </div>
+          <div className="cell">
+            ${results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
+          </div>
         </div>
       </div>
       <br></br>
@@ -300,23 +491,25 @@ const InvestmentSimulator = () => {
           <div className="cell">Loan End Month</div>
           <div className="cell">Remaining Loan Principle</div>
           <div className="cell">Net Rent Income On The End</div>
-          <div className="cell">Price After Growth</div> {/* New column for grown price */}
+          <div className="cell">Price After Growth</div>{" "}
+          {/* New column for grown price */}
         </div>
         {results.apartments.map((apt, index) => (
           <div key={index} className="flex-row">
             <div className="cell">{index + 1}</div>
-            <div className="cell">{apt.boughtMonth + 1}</div>
+            <div className="cell">{apt.boughtMonth}</div>
             <div className="cell">{apt.loanEndTime}</div>
             <div className="cell">{apt.remainingPrincipal.toFixed(2)}</div>
             <div className="cell">{apt.netRentIncome.toFixed(2)}</div>
-            <div className="cell">{apt.priceAfterGrowth.toFixed(2)}</div> {/* Display grown price */}
+            <div className="cell">{apt.priceAfterGrowth.toFixed(2)}</div>{" "}
+            {/* Display grown price */}
           </div>
         ))}
       </div>
       <br></br>
       <div className="flex-table">
         <div className="flex-row header">
-        <div className="cell">month</div>
+          <div className="cell">month</div>
           <div className="cell">money</div>
           <div className="cell">totalIncome</div>
           <div className="cell">incomeFromRent</div>

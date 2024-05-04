@@ -20,6 +20,7 @@ const InvestmentSimulator = () => {
     totalApartments: 0,
     totalValue: 0,
     totalMonthlyPassiveIncome: 0,
+    totalMonthlyPassiveIncomeAfterCoveringLoans: 0,
     totalLoansLeft: 0,
     apartments: [],
     monthlyDetails: [],
@@ -140,14 +141,19 @@ const InvestmentSimulator = () => {
     return payments;
   };
 
+  const calculateRentIncome = (month, apartment) => {
+    return (
+      inputs.netRentIncome +
+      Math.floor((month - apartment.boughtMonth) / 12) *
+        inputs.rentIncomeYearlyIncrease
+    );
+  };
+
   const updateApartmentMonthlyIncome = (month, apartments) => {
     apartments.forEach((apartment) => {
       let loanReturn =
         month >= apartment.loanEndTime ? 0 : apartment.monthlyLoanPayment;
-      let rentIncome =
-        inputs.netRentIncome +
-        Math.floor((month - apartment.boughtMonth) / 12) *
-          inputs.rentIncomeYearlyIncrease;
+      let rentIncome = calculateRentIncome(month, apartment);
       apartment.netRentIncome = rentIncome - loanReturn;
     });
   };
@@ -266,10 +272,16 @@ const InvestmentSimulator = () => {
     const moneyLeftWithCoveringLoans =
       apartmentsToSellTotalPrice + money - totalLoansPrincipleLeft;
 
+    const totalMonthlyPassiveIncomeAfterCoveringLoans = apartments
+      .slice(numOfApartmentsToSellForCoveringLoan)
+      .map((apartment) => calculateRentIncome(totalMonths, apartment))
+      .reduce((a, b) => a + b, 0);
+
     setResults({
       totalApartments,
       totalValue,
       totalMonthlyPassiveIncome,
+      totalMonthlyPassiveIncomeAfterCoveringLoans,
       totalLoansPrincipleLeft,
       apartments,
       money: money,
@@ -442,19 +454,18 @@ const InvestmentSimulator = () => {
         <div className="flex-row">
           <div className="cell">Total Monthly Passive Income:</div>
           <div className="cell">
-            ${results.totalMonthlyPassiveIncome.toLocaleString()}
+            {results.totalMonthlyPassiveIncome.toLocaleString()}
           </div>
         </div>
         <div className="flex-row">
           <div className="cell">Total Loans Principle Left to Pay:</div>
           <div className="cell">
-            ${results.totalLoansPrincipleLeft?.toLocaleString()}
+            {results.totalLoansPrincipleLeft?.toLocaleString()}
           </div>
         </div>
         <div className="flex-row">
           <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
           <div className="cell">
-            $
             {(
               results.totalValue - results.totalLoansPrincipleLeft
             )?.toLocaleString()}
@@ -469,7 +480,6 @@ const InvestmentSimulator = () => {
             Total Apartments After Selling Apartments For Covering Loans :
           </div>
           <div className="cell">
-            $
             {results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() ||
               0}
           </div>
@@ -479,7 +489,15 @@ const InvestmentSimulator = () => {
             Money Left After Covering Loan With Apartments :
           </div>
           <div className="cell">
-            ${results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
+            {results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
+          </div>
+        </div>
+        <div className="flex-row">
+          <div className="cell">
+            Total Monthly Passive Income After Covering Loans:
+          </div>
+          <div className="cell">
+            {results.totalMonthlyPassiveIncomeAfterCoveringLoans.toLocaleString()}
           </div>
         </div>
       </div>

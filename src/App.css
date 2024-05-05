@@ -37,6 +37,18 @@
   flex-direction: column;
   width: 100%;
 }
+.input-table table tr:nth-child(odd) {
+  background-color: #f0f0f0; /* Light Gray */
+}
+.input-table table tr:nth-child(even) {
+  background-color: #ffffff; /* White */
+}
+.flex-row:nth-child(odd) {
+  background-color: #f0f0f0; /* Light Blue */
+}
+.flex-row:nth-child(even) {
+  background-color: #ffffff; /* Powder Blue */
+}
 
 .flex-row {
   display: flex;
@@ -84,20 +96,38 @@ input[type="number"] {
   text-align: left;
 }
 
-.input-table {
-  margin: 0 auto;
-}
-
 .input-table table {
+  width: 30%;
   border-collapse: collapse;
-  width: 50%;
 }
 
+.input-table th,
 .input-table td {
+  border: 2px solid #ccc; /* Consistent border for all cells */
+  text-align: left;
   padding: 10px;
-  border: 1px solid #ddd;
+  font-weight: 500;
+}
+
+.input-table th {
+  background-color: #f0f0f0; /* Light Gray */ /* Light gray background for headers */
+  font-weight: bold; /* Make text bold */
+  font-size: medium;
 }
 
 .input-table label {
   font-weight: bold;
+}
+
+.flex-row {
+  display: flex;
+  font-weight: 500;
+}
+
+body {
+  background: linear-gradient(to bottom, #fffaf0, #e0f7fa);
+  height: 100vh;
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }

@@ -332,10 +332,14 @@ const InvestmentSimulator = () => {
 
       <div class="input-table">
         <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Value</th>
+            </tr>
+          </thead>
           <tr>
-            <td>
-              <label for="initialMoney">Initial Money</label>
-            </td>
+            <td>Initial Money</td>
             <td>
               <input
                 type="number"
@@ -347,9 +351,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="apartmentPrice">Apartment Price</label>
-            </td>
+            <td>Apartment Price</td>
             <td>
               <input
                 type="number"
@@ -361,9 +363,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="netRentIncome">Net Rent Income</label>
-            </td>
+            <td>Net Rent Income</td>
             <td>
               <input
                 type="number"
@@ -375,11 +375,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="rentIncomeYearlyIncrease">
-                Rent Income Yearly Increase
-              </label>
-            </td>
+            <td>Rent Income Yearly Increase</td>
             <td>
               <input
                 type="number"
@@ -391,9 +387,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="loanAmount">Loan Amount</label>
-            </td>
+            <td>Loan Amount</td>
             <td>
               <input
                 type="number"
@@ -405,9 +399,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="loanInterestRate">Loan Interest Rate</label>
-            </td>
+            <td>Loan Interest Rate</td>
             <td>
               <input
                 type="number"
@@ -419,9 +411,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="loanTimeYears">Loan Time Years</label>
-            </td>
+            <td>Loan Time Years</td>
             <td>
               <input
                 type="number"
@@ -433,9 +423,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="investmentTimeYears">Investment Time Years</label>
-            </td>
+            <td>Investment Time Years</td>
             <td>
               <input
                 type="number"
@@ -447,9 +435,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="monthlyContribution">Monthly Contribution</label>
-            </td>
+            <td>Monthly Contribution</td>
             <td>
               <input
                 type="number"
@@ -461,9 +447,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="priceGrowthRate">Price Growth Rate</label>
-            </td>
+            <td>Price Growth Rate</td>
             <td>
               <input
                 type="number"
@@ -475,11 +459,7 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>
-              <label for="sellApartmentWhenLoanIsOver">
-                Sell Apartment When Loan Is Over
-              </label>
-            </td>
+            <td>Sell Apartment When Loan Is Over</td>
             <td>
               <input
                 type="checkbox"
@@ -492,15 +472,19 @@ const InvestmentSimulator = () => {
           </tr>
         </table>
       </div>
-      <h2>Results</h2>
+      <h2>Investment Summary</h2>
       <div className="flex-table results-table">
+        <div className="flex-row header">
+          <div className="cell">Subject</div>
+          <div className="cell">Value</div>
+        </div>
         <div className="flex-row">
           <div className="cell">Total Apartments:</div>
           <div className="cell">{results.totalApartments}</div>
         </div>
         <div className="flex-row">
           <div className="cell">Total Value:</div>
-          <div className="cell">${results.totalValue.toLocaleString()}</div>
+          <div className="cell">{results.totalValue.toLocaleString()}</div>
         </div>
         <div className="flex-row">
           <div className="cell">Total Monthly Passive Income:</div>
@@ -524,7 +508,7 @@ const InvestmentSimulator = () => {
         </div>
         <div className="flex-row">
           <div className="cell">Money:</div>
-          <div className="cell">${results?.money?.toLocaleString() || 0}</div>
+          <div className="cell">{results?.money?.toLocaleString() || 0}</div>
         </div>
         <div className="flex-row">
           <div className="cell">
@@ -550,8 +534,8 @@ const InvestmentSimulator = () => {
           </div>
         </div>
       </div>
-      <br></br>
-      <div className="flex-table">
+      <h2>Apartments</h2>
+      <div className="flex-table apartments-table">
         <div className="flex-row header">
           <div className="cell">Apartment Index</div>
           <div className="cell">Loan Start Month</div>
@@ -566,15 +550,19 @@ const InvestmentSimulator = () => {
             <div className="cell">{index + 1}</div>
             <div className="cell">{apt.boughtMonth}</div>
             <div className="cell">{apt.loanEndTime}</div>
-            <div className="cell">{apt.remainingPrincipal.toFixed(2)}</div>
-            <div className="cell">{apt.netRentIncome.toFixed(2)}</div>
-            <div className="cell">{apt.priceAfterGrowth.toFixed(2)}</div>{" "}
+            <div className="cell">
+              {apt.remainingPrincipal.toLocaleString()}
+            </div>
+            <div className="cell">{apt.netRentIncome.toLocaleString()}</div>
+            <div className="cell">
+              {apt.priceAfterGrowth.toLocaleString()}
+            </div>{" "}
             {/* Display grown price */}
           </div>
         ))}
       </div>
-      <br></br>
-      <div className="flex-table">
+      <h2>Monthly Details</h2>
+      <div className="flex-table monthly-details-table">
         <div className="flex-row header">
           <div className="cell">month</div>
           <div className="cell">money</div>
@@ -587,11 +575,13 @@ const InvestmentSimulator = () => {
         {results?.monthlyDetails?.map((apt, index) => (
           <div key={index} className="flex-row">
             <div className="cell">{apt.month}</div>
-            <div className="cell">{apt.money.toFixed(2)}</div>
-            <div className="cell">{apt.totalIncome.toFixed(2)}</div>
-            <div className="cell">{apt.incomeFromRent.toFixed(2)}</div>
+            <div className="cell">{apt.money.toLocaleString()}</div>
+            <div className="cell">{apt.totalIncome.toLocaleString()}</div>
+            <div className="cell">{apt.incomeFromRent.toLocaleString()}</div>
             <div className="cell">{apt.numOfApartments}</div>
-            <div className="cell">{apt.numOfSoldApartments.toFixed(2)}</div>
+            <div className="cell">
+              {apt.numOfSoldApartments.toLocaleString()}
+            </div>
             <div className="cell">{apt.totalMoneyFromSoldApartments}</div>
           </div>
         ))}

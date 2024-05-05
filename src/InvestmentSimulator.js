@@ -339,7 +339,9 @@ const InvestmentSimulator = () => {
             </tr>
           </thead>
           <tr>
-            <td>Initial Money</td>
+            <td>
+              <label for="initialMoney">Initial Money</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -351,7 +353,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Apartment Price</td>
+            <td>
+              <label for="apartmentPrice">Apartment Price</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -363,7 +367,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Net Rent Income</td>
+            <td>
+              <label for="netRentIncome">Net Rent Income</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -375,7 +381,11 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Rent Income Yearly Increase</td>
+            <td>
+              <label for="rentIncomeYearlyIncrease">
+                Rent Income Yearly Increase
+              </label>
+            </td>
             <td>
               <input
                 type="number"
@@ -387,7 +397,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Loan Amount</td>
+            <td>
+              <label for="loanAmount">Loan Amount</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -399,7 +411,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Loan Interest Rate</td>
+            <td>
+              <label for="loanInterestRate">Loan Interest Rate</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -411,7 +425,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Loan Time Years</td>
+            <td>
+              <label for="loanTimeYears">Loan Time Years</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -423,7 +439,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Investment Time Years</td>
+            <td>
+              <label for="investmentTimeYears">Investment Time Years</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -435,7 +453,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Monthly Contribution</td>
+            <td>
+              <label for="monthlyContribution">Monthly Contribution</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -447,7 +467,9 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Price Growth Rate</td>
+            <td>
+              <label for="priceGrowthRate">Price Growth Rate</label>
+            </td>
             <td>
               <input
                 type="number"
@@ -459,9 +481,14 @@ const InvestmentSimulator = () => {
             </td>
           </tr>
           <tr>
-            <td>Sell Apartment When Loan Is Over</td>
+            <td>
+              <label for="sellApartmentWhenLoanIsOver">
+                Sell Apartment When Loan Is Over
+              </label>
+            </td>
             <td>
               <input
+                className="checkbox"
                 type="checkbox"
                 id="sellApartmentWhenLoanIsOver"
                 name="sellApartmentWhenLoanIsOver"
@@ -534,7 +561,7 @@ const InvestmentSimulator = () => {
           </div>
         </div>
       </div>
-      <h2>Apartments</h2>
+      <h2>Monthly Details</h2>
       <div className="flex-table apartments-table">
         <div className="flex-row header">
           <div className="cell">Apartment Index</div>

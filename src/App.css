@@ -115,10 +115,6 @@ input[type="number"] {
   font-size: medium;
 }
 
-.input-table label {
-  font-weight: bold;
-}
-
 .flex-row {
   display: flex;
   font-weight: 500;

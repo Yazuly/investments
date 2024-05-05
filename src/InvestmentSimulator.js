@@ -155,7 +155,7 @@ const InvestmentSimulator = () => {
   const calculateRentIncome = (month, apartment) => {
     return (
       inputs.netRentIncome +
-      Math.floor((month + 1 - apartment.boughtMonth) / 12) *
+      Math.floor((month - apartment.boughtMonth) / 12) *
         inputs.rentIncomeYearlyIncrease
     );
   };
@@ -280,6 +280,7 @@ const InvestmentSimulator = () => {
 
       month++;
     }
+    updateApartmentMonthlyIncome(month, apartments);
 
     const totalValue = apartments.reduce(
       (acc, apt) => acc + apt.priceAfterGrowth,

@@ -29,6 +29,48 @@ const InvestmentSimulator = () => {
     sellApartmentWhenLoanIsOver: false,
   });
 
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const errorMessage = validateInputs();
+    if (errorMessage) {
+      setError(errorMessage);
+    } else {
+      setError("");
+      simulateInvestment();
+    }
+  }, [inputs]); // Dependency array includes `inputs`
+
+  useEffect(() => {
+    const errorMessage = validateOutputs();
+    if (errorMessage) {
+      setError(errorMessage);
+    } else {
+      setError("");
+    }
+  }, [results]); // Dependency array includes `inputs`
+
+  const validateInputs = () => {
+    const nullInputsKeys = Object.keys(inputs).filter((key) =>
+      isNaN(inputs[key])
+    );
+    if (nullInputsKeys.length > 0) {
+      return (
+        "the following inputs were not provided: " + nullInputsKeys.join(" , ")
+      );
+    }
+    return ""; // No errors
+  };
+
+  const validateOutputs = () => {
+    let monthsWithNegativeMoney =
+      results?.monthlyDetails?.filter((details) => details.money < 0) || [];
+    if (monthsWithNegativeMoney.length > 0) {
+      return "Loan returns are leading to negative money.";
+    }
+    return;
+  };
+
   const maxLoanToApartmentPriceRatio = 0.9;
 
   const handleInitialMoneyChange = (event) => {
@@ -104,10 +146,6 @@ const InvestmentSimulator = () => {
       sellApartmentWhenLoanIsOver: !inputs.sellApartmentWhenLoanIsOver,
     }));
   };
-
-  useEffect(() => {
-    simulateInvestment();
-  }, [inputs]); // Dependency array includes `inputs`, so the effect runs any time `inputs` changes
 
   const isLoanOver = (currentMonth, apartment) =>
     currentMonth > apartment.loanEndTime;
@@ -500,120 +538,135 @@ const InvestmentSimulator = () => {
           </tr>
         </table>
       </div>
-      <h2>Investment Summary</h2>
-      <div className="flex-table results-table">
-        <div className="flex-row header">
-          <div className="cell">Subject</div>
-          <div className="cell">Value</div>
+
+      {error && (
+        <div className="error-message">
+          <p>Error: {error}</p>
         </div>
-        <div className="flex-row">
-          <div className="cell">Total Apartments:</div>
-          <div className="cell">{results.totalApartments}</div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">Total Value:</div>
-          <div className="cell">{results.totalValue.toLocaleString()}</div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">Total Monthly Passive Income:</div>
-          <div className="cell">
-            {results.totalMonthlyPassiveIncome.toLocaleString()}
-          </div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">Total Loans Principle Left to Pay:</div>
-          <div className="cell">
-            {results.totalLoansPrincipleLeft?.toLocaleString()}
-          </div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
-          <div className="cell">
-            {(
-              results.totalValue - results.totalLoansPrincipleLeft
-            )?.toLocaleString()}
-          </div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">Money:</div>
-          <div className="cell">{results?.money?.toLocaleString() || 0}</div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">
-            Total Apartments After Selling Apartments For Covering Loans:
-          </div>
-          <div className="cell">
-            {results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() ||
-              0}
-          </div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">Money Left After Covering Loans:</div>
-          <div className="cell">
-            {results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
-          </div>
-        </div>
-        <div className="flex-row">
-          <div className="cell">
-            Total Monthly Passive Income After Covering Loans:
-          </div>
-          <div className="cell">
-            {results.totalMonthlyPassiveIncomeAfterCoveringLoans.toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <h2>Monthly Details</h2>
-      <div className="flex-table apartments-table">
-        <div className="flex-row header">
-          <div className="cell">Apartment Index</div>
-          <div className="cell">Loan Start Month</div>
-          <div className="cell">Loan End Month</div>
-          <div className="cell">Remaining Loan Principle</div>
-          <div className="cell">Net Rent Income On The End</div>
-          <div className="cell">Price After Growth</div>{" "}
-          {/* New column for grown price */}
-        </div>
-        {results.apartments.map((apt, index) => (
-          <div key={index} className="flex-row">
-            <div className="cell">{index + 1}</div>
-            <div className="cell">{apt.boughtMonth}</div>
-            <div className="cell">{apt.loanEndTime}</div>
-            <div className="cell">
-              {apt.remainingPrincipal.toLocaleString()}
+      )}
+
+      {!error && results && (
+        <>
+          <h2>Investment Summary</h2>
+          <div className="flex-table results-table">
+            <div className="flex-row header">
+              <div className="cell">Subject</div>
+              <div className="cell">Value</div>
             </div>
-            <div className="cell">{apt.netRentIncome.toLocaleString()}</div>
-            <div className="cell">
-              {apt.priceAfterGrowth.toLocaleString()}
-            </div>{" "}
-            {/* Display grown price */}
-          </div>
-        ))}
-      </div>
-      <h2>Monthly Details</h2>
-      <div className="flex-table monthly-details-table">
-        <div className="flex-row header">
-          <div className="cell">month</div>
-          <div className="cell">money</div>
-          <div className="cell">totalIncome</div>
-          <div className="cell">incomeFromRent</div>
-          <div className="cell">numOfApartments</div>
-          <div className="cell">numOfSoldApartments</div>
-          <div className="cell">totalMoneyFromSoldApartments</div>
-        </div>
-        {results?.monthlyDetails?.map((apt, index) => (
-          <div key={index} className="flex-row">
-            <div className="cell">{apt.month}</div>
-            <div className="cell">{apt.money.toLocaleString()}</div>
-            <div className="cell">{apt.totalIncome.toLocaleString()}</div>
-            <div className="cell">{apt.incomeFromRent.toLocaleString()}</div>
-            <div className="cell">{apt.numOfApartments}</div>
-            <div className="cell">
-              {apt.numOfSoldApartments.toLocaleString()}
+            <div className="flex-row">
+              <div className="cell">Total Apartments:</div>
+              <div className="cell">{results.totalApartments}</div>
             </div>
-            <div className="cell">{apt.totalMoneyFromSoldApartments}</div>
+            <div className="flex-row">
+              <div className="cell">Total Value:</div>
+              <div className="cell">{results.totalValue.toLocaleString()}</div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Total Monthly Passive Income:</div>
+              <div className="cell">
+                {results.totalMonthlyPassiveIncome.toLocaleString()}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Total Loans Principle Left to Pay:</div>
+              <div className="cell">
+                {results.totalLoansPrincipleLeft?.toLocaleString()}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
+              <div className="cell">
+                {(
+                  results.totalValue - results.totalLoansPrincipleLeft
+                )?.toLocaleString()}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Money:</div>
+              <div className="cell">
+                {results?.money?.toLocaleString() || 0}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">
+                Total Apartments After Selling Apartments For Covering Loans:
+              </div>
+              <div className="cell">
+                {results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() ||
+                  0}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Money Left After Covering Loans:</div>
+              <div className="cell">
+                {results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">
+                Total Monthly Passive Income After Covering Loans:
+              </div>
+              <div className="cell">
+                {results.totalMonthlyPassiveIncomeAfterCoveringLoans.toLocaleString()}
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
+          <h2>Monthly Details</h2>
+          <div className="flex-table apartments-table">
+            <div className="flex-row header">
+              <div className="cell">Apartment Index</div>
+              <div className="cell">Loan Start Month</div>
+              <div className="cell">Loan End Month</div>
+              <div className="cell">Remaining Loan Principle</div>
+              <div className="cell">Net Rent Income On The End</div>
+              <div className="cell">Price After Growth</div>{" "}
+              {/* New column for grown price */}
+            </div>
+            {results.apartments.map((apt, index) => (
+              <div key={index} className="flex-row">
+                <div className="cell">{index + 1}</div>
+                <div className="cell">{apt.boughtMonth}</div>
+                <div className="cell">{apt.loanEndTime}</div>
+                <div className="cell">
+                  {apt.remainingPrincipal.toLocaleString()}
+                </div>
+                <div className="cell">{apt.netRentIncome.toLocaleString()}</div>
+                <div className="cell">
+                  {apt.priceAfterGrowth.toLocaleString()}
+                </div>{" "}
+                {/* Display grown price */}
+              </div>
+            ))}
+          </div>
+          <h2>Monthly Details</h2>
+          <div className="flex-table monthly-details-table">
+            <div className="flex-row header">
+              <div className="cell">month</div>
+              <div className="cell">money</div>
+              <div className="cell">totalIncome</div>
+              <div className="cell">incomeFromRent</div>
+              <div className="cell">numOfApartments</div>
+              <div className="cell">numOfSoldApartments</div>
+              <div className="cell">totalMoneyFromSoldApartments</div>
+            </div>
+            {results?.monthlyDetails?.map((apt, index) => (
+              <div key={index} className="flex-row">
+                <div className="cell">{apt.month}</div>
+                <div className="cell">{apt.money.toLocaleString()}</div>
+                <div className="cell">{apt.totalIncome.toLocaleString()}</div>
+                <div className="cell">
+                  {apt.incomeFromRent.toLocaleString()}
+                </div>
+                <div className="cell">{apt.numOfApartments}</div>
+                <div className="cell">
+                  {apt.numOfSoldApartments.toLocaleString()}
+                </div>
+                <div className="cell">{apt.totalMoneyFromSoldApartments}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

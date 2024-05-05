@@ -26,6 +26,7 @@ const InvestmentSimulator = () => {
     monthlyDetails: [],
     totalApartmentsAfterSellingApartmentsForCoveringLoans: 0,
     moneyLeftWithCoveringLoans: 0,
+    sellApartmentWhenLoanIsOver: false,
   });
 
   const maxLoanToApartmentPriceRatio = 0.9;
@@ -97,9 +98,19 @@ const InvestmentSimulator = () => {
     }));
   };
 
+  const sellApartmentWhenLoanIsOverChange = (event) => {
+    setInputs((inputs) => ({
+      ...inputs,
+      sellApartmentWhenLoanIsOver: !inputs.sellApartmentWhenLoanIsOver,
+    }));
+  };
+
   useEffect(() => {
     simulateInvestment();
   }, [inputs]); // Dependency array includes `inputs`, so the effect runs any time `inputs` changes
+
+  const isLoanOver = (currentMonth, apartment) =>
+    currentMonth > apartment.loanEndTime;
 
   const calculateLoanPaymentsDetails = (
     loanAmount,
@@ -171,10 +182,9 @@ const InvestmentSimulator = () => {
       priceGrowthRate,
     } = inputs;
 
-    let month = 1;
     const totalMonths = investmentTimeYears * 12;
+    let month = 1;
     let money = initialMoney;
-    let totalApartments = 0;
     let apartments = [];
     let monthlyDetails = [
       {
@@ -183,12 +193,18 @@ const InvestmentSimulator = () => {
         totalIncome: 0,
         incomeFromRent: 0,
         numOfApartments: 0,
+        numOfSoldApartments: 0,
+        totalMoneyFromSoldApartments: 0,
       },
     ];
 
     while (month <= totalMonths) {
       while (money + loanAmount >= apartmentPrice) {
         let yearsHeld = (totalMonths + 1 - month) / 12;
+        if (inputs.sellApartmentWhenLoanIsOver) {
+          yearsHeld = Math.min(loanTimeYears, yearsHeld);
+        }
+
         let priceAfterGrowth =
           apartmentPrice * Math.pow(1 + priceGrowthRate / 100, yearsHeld);
 
@@ -225,22 +241,41 @@ const InvestmentSimulator = () => {
         apartments.push(newApartment);
 
         money -= apartmentPrice - loanAmount;
-        totalApartments++;
       }
+
+      let numOfSoldApartments = 0;
+      let totalMoneyFromSoldApartments = 0;
+      if (inputs.sellApartmentWhenLoanIsOver) {
+        apartments.forEach((apartment) => {
+          if (isLoanOver(month, apartment)) {
+            numOfSoldApartments++;
+            totalMoneyFromSoldApartments += apartment.priceAfterGrowth;
+          }
+        });
+        apartments = apartments.filter(
+          (apartment) => !isLoanOver(month, apartment)
+        );
+      }
+
+      money += totalMoneyFromSoldApartments;
 
       updateApartmentMonthlyIncome(month, apartments);
       let incomeFromRent = apartments.reduce(
         (sum, apt) => sum + apt.netRentIncome,
         0
       );
+
       let totalIncome = monthlyContribution + incomeFromRent;
       money += totalIncome;
+
       monthlyDetails.push({
         month,
         money,
         totalIncome,
         incomeFromRent,
         numOfApartments: apartments.length,
+        numOfSoldApartments,
+        totalMoneyFromSoldApartments,
       });
 
       month++;
@@ -268,7 +303,7 @@ const InvestmentSimulator = () => {
       numOfApartmentsToSellForCoveringLoan++;
     }
     const totalApartmentsAfterSellingApartmentsForCoveringLoans =
-      totalApartments - numOfApartmentsToSellForCoveringLoan;
+      apartments.length - numOfApartmentsToSellForCoveringLoan;
     const moneyLeftWithCoveringLoans =
       apartmentsToSellTotalPrice + money - totalLoansPrincipleLeft;
 
@@ -278,7 +313,7 @@ const InvestmentSimulator = () => {
       .reduce((a, b) => a + b, 0);
 
     setResults({
-      totalApartments,
+      totalApartments: apartments.length,
       totalValue,
       totalMonthlyPassiveIncome,
       totalMonthlyPassiveIncomeAfterCoveringLoans,
@@ -439,6 +474,22 @@ const InvestmentSimulator = () => {
               />
             </td>
           </tr>
+          <tr>
+            <td>
+              <label for="sellApartmentWhenLoanIsOver">
+                Sell Apartment When Loan Is Over
+              </label>
+            </td>
+            <td>
+              <input
+                type="checkbox"
+                id="sellApartmentWhenLoanIsOver"
+                name="sellApartmentWhenLoanIsOver"
+                checked={inputs.sellApartmentWhenLoanIsOver}
+                onChange={sellApartmentWhenLoanIsOverChange}
+              />
+            </td>
+          </tr>
         </table>
       </div>
       <h2>Results</h2>
@@ -477,7 +528,7 @@ const InvestmentSimulator = () => {
         </div>
         <div className="flex-row">
           <div className="cell">
-            Total Apartments After Selling Apartments For Covering Loans :
+            Total Apartments After Selling Apartments For Covering Loans:
           </div>
           <div className="cell">
             {results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() ||
@@ -485,9 +536,7 @@ const InvestmentSimulator = () => {
           </div>
         </div>
         <div className="flex-row">
-          <div className="cell">
-            Money Left After Covering Loan With Apartments :
-          </div>
+          <div className="cell">Money Left After Covering Loans:</div>
           <div className="cell">
             {results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
           </div>
@@ -532,6 +581,8 @@ const InvestmentSimulator = () => {
           <div className="cell">totalIncome</div>
           <div className="cell">incomeFromRent</div>
           <div className="cell">numOfApartments</div>
+          <div className="cell">numOfSoldApartments</div>
+          <div className="cell">totalMoneyFromSoldApartments</div>
         </div>
         {results?.monthlyDetails?.map((apt, index) => (
           <div key={index} className="flex-row">
@@ -540,6 +591,8 @@ const InvestmentSimulator = () => {
             <div className="cell">{apt.totalIncome.toFixed(2)}</div>
             <div className="cell">{apt.incomeFromRent.toFixed(2)}</div>
             <div className="cell">{apt.numOfApartments}</div>
+            <div className="cell">{apt.numOfSoldApartments.toFixed(2)}</div>
+            <div className="cell">{apt.totalMoneyFromSoldApartments}</div>
           </div>
         ))}
       </div>

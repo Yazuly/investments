@@ -127,3 +127,21 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
+
+.valid-text {
+  color: green;
+  border: 2px solid black; /* Sets the border to be 2 pixels thick and solid black */
+  padding: 10px;
+  font-weight: 500;
+  font-size: x-large;
+  text-align: center;
+}
+
+.error-text {
+  color: red;
+  border: 2px solid black; /* Sets the border to be 2 pixels thick and solid black */
+  padding: 10px;
+  font-weight: 500;
+  font-size: x-large;
+  text-align: center;
+}

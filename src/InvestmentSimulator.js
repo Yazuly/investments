@@ -7,6 +7,7 @@ const InvestmentSimulator = () => {
     initialMoney: 250000,
     apartmentPrice: 500000,
     netRentIncome: 3000,
+    yearlyRentTaxesInPercent: 13,
     loanAmount: 250000,
     loanInterestRate: 6,
     loanTimeYears: 15,
@@ -19,6 +20,7 @@ const InvestmentSimulator = () => {
   const [results, setResults] = useState({
     totalApartments: 0,
     totalValue: 0,
+    totalValueAfterCoveringLoans: 0,
     totalMonthlyPassiveIncome: 0,
     totalMonthlyPassiveIncomeAfterCoveringLoans: 0,
     totalLoansLeft: 0,
@@ -42,12 +44,7 @@ const InvestmentSimulator = () => {
   }, [inputs]); // Dependency array includes `inputs`
 
   useEffect(() => {
-    const errorMessage = validateOutputs();
-    if (errorMessage) {
-      setError(errorMessage);
-    } else {
-      setError("");
-    }
+    setError(validateOutputs());
   }, [results]); // Dependency array includes `inputs`
 
   const validateInputs = () => {
@@ -69,6 +66,10 @@ const InvestmentSimulator = () => {
       return "Loan returns are leading to negative money.";
     }
     return;
+  };
+
+  const getRentIncomeAfterTaxes = (income) => {
+    return income * (1 - inputs.yearlyRentTaxesInPercent / 100);
   };
 
   const maxLoanToApartmentPriceRatio = 0.9;
@@ -94,10 +95,17 @@ const InvestmentSimulator = () => {
     }));
   };
 
-  const hanldeRentIncomeYearlyIncrease = (event) => {
+  const hanldeRentIncomeYearlyIncreaseChange = (event) => {
     setInputs((inputs) => ({
       ...inputs,
       rentIncomeYearlyIncrease: parseFloat(event.target.value),
+    }));
+  };
+
+  const handleYearlyRentTaxesInPercentChange = (event) => {
+    setInputs((inputs) => ({
+      ...inputs,
+      yearlyRentTaxesInPercent: parseFloat(event.target.value),
     }));
   };
 
@@ -303,7 +311,8 @@ const InvestmentSimulator = () => {
         0
       );
 
-      let totalIncome = monthlyContribution + incomeFromRent;
+      let totalIncome =
+        monthlyContribution + getRentIncomeAfterTaxes(incomeFromRent);
       money += totalIncome;
 
       monthlyDetails.push({
@@ -351,9 +360,14 @@ const InvestmentSimulator = () => {
       .map((apartment) => calculateRentIncome(totalMonths, apartment))
       .reduce((a, b) => a + b, 0);
 
+    const totalValueAfterCoveringLoans = apartments
+      .slice(numOfApartmentsToSellForCoveringLoan)
+      .reduce((acc, apt) => acc + apt.priceAfterGrowth, 0);
+
     setResults({
       totalApartments: apartments.length,
       totalValue,
+      totalValueAfterCoveringLoans,
       totalMonthlyPassiveIncome,
       totalMonthlyPassiveIncomeAfterCoveringLoans,
       totalLoansPrincipleLeft,
@@ -431,7 +445,23 @@ const InvestmentSimulator = () => {
                 id="rentIncomeYearlyIncrease"
                 name="rentIncomeYearlyIncrease"
                 value={inputs.rentIncomeYearlyIncrease}
-                onChange={hanldeRentIncomeYearlyIncrease}
+                onChange={hanldeRentIncomeYearlyIncreaseChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="yearlyRentTaxesInPercent">
+                Rent Income Yearly Taxes Percent
+              </label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="yearlyRentTaxesInPercent"
+                name="yearlyRentTaxesInPercent"
+                value={inputs.yearlyRentTaxesInPercent}
+                onChange={handleYearlyRentTaxesInPercentChange}
               />
             </td>
           </tr>
@@ -539,15 +569,57 @@ const InvestmentSimulator = () => {
         </table>
       </div>
 
-      {error && (
-        <div className="error-message">
-          <p>Error: {error}</p>
-        </div>
-      )}
+      <div className="error-message">
+        {error && <p className="error-text">Error: {error}</p>}
+        {!error && <p className="valid-text">Valid Inputs</p>}
+      </div>
 
-      {!error && results && (
+      {!error && (
         <>
-          <h2>Investment Summary</h2>
+          <h2>Summary</h2>
+          <div className="flex-table results-table">
+            <div className="flex-row header">
+              <div className="cell">Subject</div>
+              <div className="cell">Value</div>
+            </div>
+          </div>
+          <div className="flex-row">
+            <div className="cell">Total Apartments:</div>
+            <div className="cell">
+              {results?.totalApartments?.toLocaleString() || 0}
+            </div>
+          </div>
+          <div className="flex-row">
+            <div className="cell">TotalValue:</div>
+            <div className="cell">{results.totalValue?.toLocaleString()}</div>
+          </div>
+
+          <div className="flex-row">
+            <div className="cell">Total Loans Principle Left to Pay:</div>
+            <div className="cell">
+              {results.totalLoansPrincipleLeft?.toLocaleString()}
+            </div>
+          </div>
+          <div className="flex-row">
+            <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
+            <div className="cell">
+              {(
+                results.totalValue - results.totalLoansPrincipleLeft
+              )?.toLocaleString()}
+            </div>
+          </div>
+          <div className="flex-row">
+            <div className="cell">Liquid Cash:</div>
+            <div className="cell">{results?.money?.toLocaleString() || 0}</div>
+          </div>
+          <div className="flex-row">
+            <div className="cell">Total Monthly Passive Income:</div>
+            <div className="cell">
+              {results.totalMonthlyPassiveIncome.toLocaleString()}
+            </div>
+          </div>
+
+          <h2>Summary With Covering Loans</h2>
           <div className="flex-table results-table">
             <div className="flex-row header">
               <div className="cell">Subject</div>
@@ -555,49 +627,19 @@ const InvestmentSimulator = () => {
             </div>
             <div className="flex-row">
               <div className="cell">Total Apartments:</div>
-              <div className="cell">{results.totalApartments}</div>
-            </div>
-            <div className="flex-row">
-              <div className="cell">Total Value:</div>
-              <div className="cell">{results.totalValue.toLocaleString()}</div>
-            </div>
-            <div className="flex-row">
-              <div className="cell">Total Monthly Passive Income:</div>
-              <div className="cell">
-                {results.totalMonthlyPassiveIncome.toLocaleString()}
-              </div>
-            </div>
-            <div className="flex-row">
-              <div className="cell">Total Loans Principle Left to Pay:</div>
-              <div className="cell">
-                {results.totalLoansPrincipleLeft?.toLocaleString()}
-              </div>
-            </div>
-            <div className="flex-row">
-              <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
-              <div className="cell">
-                {(
-                  results.totalValue - results.totalLoansPrincipleLeft
-                )?.toLocaleString()}
-              </div>
-            </div>
-            <div className="flex-row">
-              <div className="cell">Money:</div>
-              <div className="cell">
-                {results?.money?.toLocaleString() || 0}
-              </div>
-            </div>
-            <div className="flex-row">
-              <div className="cell">
-                Total Apartments After Selling Apartments For Covering Loans:
-              </div>
               <div className="cell">
                 {results?.totalApartmentsAfterSellingApartmentsForCoveringLoans?.toLocaleString() ||
                   0}
               </div>
             </div>
             <div className="flex-row">
-              <div className="cell">Money Left After Covering Loans:</div>
+              <div className="cell">Total Apartments Value:</div>
+              <div className="cell">
+                {results?.totalValueAfterCoveringLoans?.toLocaleString() || 0}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Liquid Cash:</div>
               <div className="cell">
                 {results?.moneyLeftWithCoveringLoans?.toLocaleString() || 0}
               </div>
@@ -611,6 +653,7 @@ const InvestmentSimulator = () => {
               </div>
             </div>
           </div>
+
           <h2>Monthly Details</h2>
           <div className="flex-table apartments-table">
             <div className="flex-row header">
@@ -644,6 +687,7 @@ const InvestmentSimulator = () => {
               <div className="cell">month</div>
               <div className="cell">money</div>
               <div className="cell">totalIncome</div>
+              <div className="cell">incomeFromRentAfterTaxes</div>
               <div className="cell">incomeFromRent</div>
               <div className="cell">numOfApartments</div>
               <div className="cell">numOfSoldApartments</div>
@@ -654,6 +698,9 @@ const InvestmentSimulator = () => {
                 <div className="cell">{apt.month}</div>
                 <div className="cell">{apt.money.toLocaleString()}</div>
                 <div className="cell">{apt.totalIncome.toLocaleString()}</div>
+                <div className="cell">
+                  {getRentIncomeAfterTaxes(apt.incomeFromRent).toLocaleString()}
+                </div>
                 <div className="cell">
                   {apt.incomeFromRent.toLocaleString()}
                 </div>

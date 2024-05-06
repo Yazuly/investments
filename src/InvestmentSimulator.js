@@ -7,6 +7,7 @@ const InvestmentSimulator = () => {
     initialMoney: 250000,
     apartmentPrice: 500000,
     netRentIncome: 3000,
+    rentIncomeYearlyIncrease: 100,
     yearlyRentTaxesInPercent: 13,
     loanAmount: 250000,
     loanInterestRate: 6,
@@ -14,13 +15,15 @@ const InvestmentSimulator = () => {
     investmentTimeYears: 15,
     monthlyContribution: 10000,
     priceGrowthRate: 3.5,
-    rentIncomeYearlyIncrease: 100,
+    capitalGainsTaxPercent: 25,
   });
 
   const [results, setResults] = useState({
     totalApartments: 0,
     totalValue: 0,
+    totalValueAfterTaxes: 0,
     totalValueAfterCoveringLoans: 0,
+    totalValueAfterCoveringLoansAfterTaxes: 0,
     totalMonthlyPassiveIncome: 0,
     totalMonthlyPassiveIncomeAfterCoveringLoans: 0,
     totalLoansLeft: 0,
@@ -72,6 +75,14 @@ const InvestmentSimulator = () => {
     return income * (1 - inputs.yearlyRentTaxesInPercent / 100);
   };
 
+  const getApartmentPriceAfterTaxes = (apartment) => {
+    return (
+      apartment.price +
+      (apartment.priceAfterGrowth - apartment.price) *
+        (1 - inputs.capitalGainsTaxPercent / 100)
+    );
+  };
+
   const maxLoanToApartmentPriceRatio = 0.9;
 
   const handleInitialMoneyChange = (event) => {
@@ -84,7 +95,7 @@ const InvestmentSimulator = () => {
   const handleApartmentPriceChange = (event) => {
     setInputs((inputs) => ({
       ...inputs,
-      apartmentPrice: parseFloat(event.target.value),
+      apartmentPrice: Math.max(parseFloat(event.target.value)),
     }));
   };
 
@@ -145,6 +156,13 @@ const InvestmentSimulator = () => {
     setInputs((inputs) => ({
       ...inputs,
       priceGrowthRate: parseFloat(event.target.value),
+    }));
+  };
+
+  const handleCapitalGainsTaxPercentChange = (event) => {
+    setInputs((inputs) => ({
+      ...inputs,
+      capitalGainsTaxPercent: parseFloat(event.target.value),
     }));
   };
 
@@ -291,11 +309,14 @@ const InvestmentSimulator = () => {
 
       let numOfSoldApartments = 0;
       let totalMoneyFromSoldApartments = 0;
+      let totalMoneyFromSoldApartmentsAfterTaxes = 0;
       if (inputs.sellApartmentWhenLoanIsOver) {
         apartments.forEach((apartment) => {
           if (isLoanOver(month, apartment)) {
             numOfSoldApartments++;
             totalMoneyFromSoldApartments += apartment.priceAfterGrowth;
+            totalMoneyFromSoldApartmentsAfterTaxes =
+              getApartmentPriceAfterTaxes(apartment);
           }
         });
         apartments = apartments.filter(
@@ -303,7 +324,7 @@ const InvestmentSimulator = () => {
         );
       }
 
-      money += totalMoneyFromSoldApartments;
+      money += totalMoneyFromSoldApartmentsAfterTaxes;
 
       updateApartmentMonthlyIncome(month, apartments);
       let incomeFromRent = apartments.reduce(
@@ -323,6 +344,7 @@ const InvestmentSimulator = () => {
         numOfApartments: apartments.length,
         numOfSoldApartments,
         totalMoneyFromSoldApartments,
+        totalMoneyFromSoldApartmentsAfterTaxes,
       });
 
       month++;
@@ -333,6 +355,11 @@ const InvestmentSimulator = () => {
       (acc, apt) => acc + apt.priceAfterGrowth,
       0
     );
+    const totalValueAfterTaxes = apartments.reduce(
+      (acc, apt) => acc + getApartmentPriceAfterTaxes(apt),
+      0
+    );
+
     const totalMonthlyPassiveIncome = apartments
       .map((a) => a.netRentIncome)
       .reduce((a, b) => a + b, 0);
@@ -343,17 +370,24 @@ const InvestmentSimulator = () => {
 
     let numOfApartmentsToSellForCoveringLoan = 0;
     let apartmentsToSellTotalPrice = 0;
+    let apartmentsToSellTotalPriceAfterTaxes = 0;
     for (let i = 0; i < apartments.length; i++) {
-      if (apartmentsToSellTotalPrice + money >= totalLoansPrincipleLeft) {
+      if (
+        apartmentsToSellTotalPriceAfterTaxes + money >=
+        totalLoansPrincipleLeft
+      ) {
         break;
       }
       apartmentsToSellTotalPrice += apartments[i].priceAfterGrowth;
+      apartmentsToSellTotalPriceAfterTaxes += getApartmentPriceAfterTaxes(
+        apartments[i]
+      );
       numOfApartmentsToSellForCoveringLoan++;
     }
     const totalApartmentsAfterSellingApartmentsForCoveringLoans =
       apartments.length - numOfApartmentsToSellForCoveringLoan;
     const moneyLeftWithCoveringLoans =
-      apartmentsToSellTotalPrice + money - totalLoansPrincipleLeft;
+      apartmentsToSellTotalPriceAfterTaxes + money - totalLoansPrincipleLeft;
 
     const totalMonthlyPassiveIncomeAfterCoveringLoans = apartments
       .slice(numOfApartmentsToSellForCoveringLoan)
@@ -364,11 +398,19 @@ const InvestmentSimulator = () => {
       .slice(numOfApartmentsToSellForCoveringLoan)
       .reduce((acc, apt) => acc + apt.priceAfterGrowth, 0);
 
+    const totalValueAfterCoveringLoansAfterTaxes = apartments
+      .slice(numOfApartmentsToSellForCoveringLoan)
+      .reduce((acc, apt) => acc + getApartmentPriceAfterTaxes(apt), 0);
+
     setResults({
       totalApartments: apartments.length,
       totalValue,
-      totalValueAfterCoveringLoans,
       totalMonthlyPassiveIncome,
+      totalValueAfterTaxes,
+      totalValueAfterCoveringLoans,
+      totalValueAfterCoveringLoansAfterTaxes,
+      apartmentsToSellTotalPrice,
+      apartmentsToSellTotalPriceAfterTaxes,
       totalMonthlyPassiveIncomeAfterCoveringLoans,
       totalLoansPrincipleLeft,
       apartments,
@@ -382,7 +424,6 @@ const InvestmentSimulator = () => {
   return (
     <div>
       <h1>Real Estate Investment Simulator</h1>
-
       <div class="input-table">
         <table>
           <thead>
@@ -551,6 +592,22 @@ const InvestmentSimulator = () => {
           </tr>
           <tr>
             <td>
+              <label for="capitalGainsTaxPercent">
+                Capital Gains Tax Percent
+              </label>
+            </td>
+            <td>
+              <input
+                type="number"
+                id="capitalGainsTaxPercent"
+                name="capitalGainsTaxPercent"
+                value={inputs.capitalGainsTaxPercent}
+                onChange={handleCapitalGainsTaxPercentChange}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
               <label for="sellApartmentWhenLoanIsOver">
                 Sell Apartment When Loan Is Over
               </label>
@@ -568,12 +625,10 @@ const InvestmentSimulator = () => {
           </tr>
         </table>
       </div>
-
       <div className="error-message">
         {error && <p className="error-text">Error: {error}</p>}
         {!error && <p className="valid-text">Valid Inputs</p>}
       </div>
-
       {!error && (
         <>
           <h2>Summary</h2>
@@ -590,22 +645,20 @@ const InvestmentSimulator = () => {
             </div>
           </div>
           <div className="flex-row">
-            <div className="cell">TotalValue:</div>
+            <div className="cell">Total Apartments Value:</div>
             <div className="cell">{results.totalValue?.toLocaleString()}</div>
+          </div>
+          <div className="flex-row">
+            <div className="cell">Total Apartments Value After Taxes:</div>
+            <div className="cell">
+              {results.totalValueAfterTaxes?.toLocaleString()}
+            </div>
           </div>
 
           <div className="flex-row">
             <div className="cell">Total Loans Principle Left to Pay:</div>
             <div className="cell">
               {results.totalLoansPrincipleLeft?.toLocaleString()}
-            </div>
-          </div>
-          <div className="flex-row">
-            <div className="cell">TotalValue - LoansPrincipleLeftToPay:</div>
-            <div className="cell">
-              {(
-                results.totalValue - results.totalLoansPrincipleLeft
-              )?.toLocaleString()}
             </div>
           </div>
           <div className="flex-row">
@@ -636,6 +689,27 @@ const InvestmentSimulator = () => {
               <div className="cell">Total Apartments Value:</div>
               <div className="cell">
                 {results?.totalValueAfterCoveringLoans?.toLocaleString() || 0}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Total Apartments Value After Taxes:</div>
+              <div className="cell">
+                {results?.totalValueAfterCoveringLoansAfterTaxes?.toLocaleString() ||
+                  0}
+              </div>
+            </div>
+            <div className="flex-row">
+              <div className="cell">Sold Apartments Price:</div>
+              <div className="cell">
+                {results?.apartmentsToSellTotalPrice?.toLocaleString() || 0}
+              </div>
+            </div>
+
+            <div className="flex-row">
+              <div className="cell">Sold Apartments Price After Taxes:</div>
+              <div className="cell">
+                {results?.apartmentsToSellTotalPriceAfterTaxes?.toLocaleString() ||
+                  0}
               </div>
             </div>
             <div className="flex-row">
@@ -691,6 +765,7 @@ const InvestmentSimulator = () => {
               <div className="cell">incomeFromRent</div>
               <div className="cell">numOfApartments</div>
               <div className="cell">numOfSoldApartments</div>
+              <div className="cell">totalMoneyFromSoldApartmentsAfterTaxes</div>
               <div className="cell">totalMoneyFromSoldApartments</div>
             </div>
             {results?.monthlyDetails?.map((apt, index) => (
@@ -707,6 +782,9 @@ const InvestmentSimulator = () => {
                 <div className="cell">{apt.numOfApartments}</div>
                 <div className="cell">
                   {apt.numOfSoldApartments.toLocaleString()}
+                </div>
+                <div className="cell">
+                  {apt.totalMoneyFromSoldApartmentsAfterTaxes}
                 </div>
                 <div className="cell">{apt.totalMoneyFromSoldApartments}</div>
               </div>

@@ -391,7 +391,7 @@ const InvestmentSimulator = () => {
 
     const totalMonthlyPassiveIncomeAfterCoveringLoans = apartments
       .slice(numOfApartmentsToSellForCoveringLoan)
-      .map((apartment) => calculateRentIncome(totalMonths, apartment))
+      .map((apartment) => calculateRentIncome(totalMonths + 1, apartment))
       .reduce((a, b) => a + b, 0);
 
     const totalValueAfterCoveringLoans = apartments
@@ -728,7 +728,7 @@ const InvestmentSimulator = () => {
             </div>
           </div>
 
-          <h2>Monthly Details</h2>
+          <h2>Apartments Details</h2>
           <div className="flex-table apartments-table">
             <div className="flex-row header">
               <div className="cell">Apartment Index</div>

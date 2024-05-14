@@ -1,41 +1,41 @@
 import { useEffect, useState } from "react";
 import "./App.css"; // Make sure this path matches your actual CSS file location
 
-const InvestmentInputs = (props) => {
-  const [inputs, setInputs] = useState(props.inputs);
+const InvestmentStrategy = (props) => {
+  const [strategy, setStrategy] = useState({});
 
   useEffect(() => {
-    props.setInputs(inputs);
-  }, [inputs]);
+    setStrategy(props.strategy);
+  }, [props.strategy]);
 
   const maxLoanAmountInPercent = 90;
 
   const handleInitialMoneyChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       initialMoney: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const handleApartmentPriceChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       apartmentPrice: Math.max(parseFloat(event.target.value)),
-    }));
+    });
   };
 
   const handleNetYearlyRentIncomeInPercentChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       netYearlyRentIncomeInPercent: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const handleYearlyRentTaxesInPercentChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       yearlyRentTaxesInPercent: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const handleLoanAmountInPercentChange = (event) => {
@@ -43,56 +43,60 @@ const InvestmentInputs = (props) => {
       parseFloat(event.target.value),
       maxLoanAmountInPercent
     );
-    setInputs((inputs) => ({ ...inputs, loanAmountInPercent: value }));
+    props.updateInputs({
+      ...strategy,
+      loanAmountInPercent: value,
+    });
   };
 
   const handleLoanInterestRateChange = (event) => {
     const value = Math.max(parseFloat(event.target.value), 1);
-    setInputs((inputs) => ({ ...inputs, loanInterestRate: value }));
+    props.updateInputs({ ...strategy, loanInterestRate: value });
   };
 
   const handleLoanTimeYearsChange = (event) => {
     const value = Math.max(parseFloat(event.target.value), 1);
-    setInputs((inputs) => ({ ...inputs, loanTimeYears: value }));
+    props.updateInputs({ ...strategy, loanTimeYears: value });
   };
 
   const handleInvestmentTimeYearsChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       investmentTimeYears: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const handleMonthlyContributionChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       monthlyContribution: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const handlePriceGrowthRateChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       priceGrowthRate: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const handleCapitalGainsTaxPercentChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
+    props.updateInputs({
+      ...strategy,
       capitalGainsTaxPercent: parseFloat(event.target.value),
-    }));
+    });
   };
 
   const sellApartmentWhenLoanIsOverChange = (event) => {
-    setInputs((inputs) => ({
-      ...inputs,
-      sellApartmentWhenLoanIsOver: !inputs.sellApartmentWhenLoanIsOver,
-    }));
+    props.updateInputs({
+      ...strategy,
+      sellApartmentWhenLoanIsOver: !strategy.sellApartmentWhenLoanIsOver,
+    });
   };
 
   return (
     <div class="input-table">
+      <button onClick={props.removeStrategy}>remove</button>
       <table>
         <thead>
           <tr>
@@ -109,7 +113,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="initialMoney"
               name="initialMoney"
-              value={inputs.initialMoney}
+              value={strategy.initialMoney}
               onChange={handleInitialMoneyChange}
             />
           </td>
@@ -123,7 +127,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="apartmentPrice"
               name="apartmentPrice"
-              value={inputs.apartmentPrice}
+              value={strategy.apartmentPrice}
               onChange={handleApartmentPriceChange}
             />
           </td>
@@ -139,7 +143,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="netYearlyRentIncomeInPercent"
               name="netYearlyRentIncomeInPercent"
-              value={inputs.netYearlyRentIncomeInPercent}
+              value={strategy.netYearlyRentIncomeInPercent}
               onChange={handleNetYearlyRentIncomeInPercentChange}
             />
           </td>
@@ -156,7 +160,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="yearlyRentTaxesInPercent"
               name="yearlyRentTaxesInPercent"
-              value={inputs.yearlyRentTaxesInPercent}
+              value={strategy.yearlyRentTaxesInPercent}
               onChange={handleYearlyRentTaxesInPercentChange}
             />
           </td>
@@ -170,7 +174,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="loanAmountInPercent"
               name="loanAmountInPercent"
-              value={inputs.loanAmountInPercent}
+              value={strategy.loanAmountInPercent}
               onChange={handleLoanAmountInPercentChange}
             />
           </td>
@@ -184,21 +188,21 @@ const InvestmentInputs = (props) => {
               type="number"
               id="loanInterestRate"
               name="loanInterestRate"
-              value={inputs.loanInterestRate}
+              value={strategy.loanInterestRate}
               onChange={handleLoanInterestRateChange}
             />
           </td>
         </tr>
         <tr>
           <td>
-            <label for="loanTimeYears">Investment duration in years</label>
+            <label for="loanTimeYears">Loan duration in years</label>
           </td>
           <td>
             <input
               type="number"
               id="loanTimeYears"
               name="loanTimeYears"
-              value={inputs.loanTimeYears}
+              value={strategy.loanTimeYears}
               onChange={handleLoanTimeYearsChange}
             />
           </td>
@@ -214,7 +218,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="investmentTimeYears"
               name="investmentTimeYears"
-              value={inputs.investmentTimeYears}
+              value={strategy.investmentTimeYears}
               onChange={handleInvestmentTimeYearsChange}
             />
           </td>
@@ -230,7 +234,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="monthlyContribution"
               name="monthlyContribution"
-              value={inputs.monthlyContribution}
+              value={strategy.monthlyContribution}
               onChange={handleMonthlyContributionChange}
             />
           </td>
@@ -246,7 +250,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="priceGrowthRate"
               name="priceGrowthRate"
-              value={inputs.priceGrowthRate}
+              value={strategy.priceGrowthRate}
               onChange={handlePriceGrowthRateChange}
             />
           </td>
@@ -262,7 +266,7 @@ const InvestmentInputs = (props) => {
               type="number"
               id="capitalGainsTaxPercent"
               name="capitalGainsTaxPercent"
-              value={inputs.capitalGainsTaxPercent}
+              value={strategy.capitalGainsTaxPercent}
               onChange={handleCapitalGainsTaxPercentChange}
             />
           </td>
@@ -279,7 +283,7 @@ const InvestmentInputs = (props) => {
               type="checkbox"
               id="sellApartmentWhenLoanIsOver"
               name="sellApartmentWhenLoanIsOver"
-              checked={inputs.sellApartmentWhenLoanIsOver}
+              checked={strategy.sellApartmentWhenLoanIsOver}
               onChange={sellApartmentWhenLoanIsOverChange}
             />
           </td>
@@ -289,4 +293,4 @@ const InvestmentInputs = (props) => {
   );
 };
 
-export default InvestmentInputs;
+export default InvestmentStrategy;

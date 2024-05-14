@@ -1,12 +1,9 @@
 import "./App.css"; // Make sure this path matches your actual CSS file location
-import {
-  getLoanMonthlyPayment,
-  getRentIncomeAfterTaxes,
-} from "./InvestmentUtils";
+import { getRentIncomeAfterTaxes } from "./InvestmentUtils";
 
 const InvestmentSummary = (props) => {
   const results = props.results;
-  const inputs = props.inputs;
+
   return (
     <>
       <h2>Summary</h2>
@@ -130,25 +127,28 @@ const InvestmentSummary = (props) => {
           <div className="cell">Net Rent Income After Taxes</div>
           <div className="cell">Price After Growth</div>{" "}
         </div>
-        {results.apartments.map((apt, index) => (
+        {results.apartments.map((apartment, index) => (
           <div key={index} className="flex-row">
             <div className="cell">{index + 1}</div>
-            <div className="cell">{apt.boughtMonth}</div>
-            <div className="cell">{apt.loanEndTime}</div>
+            <div className="cell">{apartment.boughtMonth}</div>
+            <div className="cell">{apartment.loanEndTime}</div>
             <div className="cell">
-              {apt.remainingPrincipal.toLocaleString()}
+              {apartment.remainingPrincipal.toLocaleString()}
             </div>
             <div className="cell">
-              {getLoanMonthlyPayment(
-                apt,
-                inputs.investmentTimeYears * 12 + 1
+              {apartment.loanMonthlyPayment.toLocaleString()}
+            </div>
+            <div className="cell">
+              {apartment.netRentIncome.toLocaleString()}
+            </div>
+            <div className="cell">
+              {getRentIncomeAfterTaxes(
+                apartment.netRentIncome
               ).toLocaleString()}
             </div>
-            <div className="cell">{apt.netRentIncome.toLocaleString()}</div>
             <div className="cell">
-              {getRentIncomeAfterTaxes(apt.netRentIncome).toLocaleString()}
-            </div>
-            <div className="cell">{apt.priceAfterGrowth.toLocaleString()}</div>{" "}
+              {apartment.priceAfterGrowth.toLocaleString()}
+            </div>{" "}
           </div>
         ))}
       </div>

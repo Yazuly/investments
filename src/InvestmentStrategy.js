@@ -11,28 +11,28 @@ const InvestmentStrategy = (props) => {
   const maxLoanAmountInPercent = 90;
 
   const handleInitialMoneyChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       initialMoney: parseFloat(event.target.value),
     });
   };
 
   const handleApartmentPriceChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       apartmentPrice: Math.max(parseFloat(event.target.value)),
     });
   };
 
   const handleNetYearlyRentIncomeInPercentChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       netYearlyRentIncomeInPercent: parseFloat(event.target.value),
     });
   };
 
   const handleYearlyRentTaxesInPercentChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       yearlyRentTaxesInPercent: parseFloat(event.target.value),
     });
@@ -43,7 +43,7 @@ const InvestmentStrategy = (props) => {
       parseFloat(event.target.value),
       maxLoanAmountInPercent
     );
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       loanAmountInPercent: value,
     });
@@ -51,44 +51,44 @@ const InvestmentStrategy = (props) => {
 
   const handleLoanInterestRateChange = (event) => {
     const value = Math.max(parseFloat(event.target.value), 1);
-    props.updateInputs({ ...strategy, loanInterestRate: value });
+    props.updateStrategy({ ...strategy, loanInterestRate: value });
   };
 
   const handleLoanTimeYearsChange = (event) => {
     const value = Math.max(parseFloat(event.target.value), 1);
-    props.updateInputs({ ...strategy, loanTimeYears: value });
+    props.updateStrategy({ ...strategy, loanTimeYears: value });
   };
 
   const handleInvestmentTimeYearsChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       investmentTimeYears: parseFloat(event.target.value),
     });
   };
 
   const handleMonthlyContributionChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       monthlyContribution: parseFloat(event.target.value),
     });
   };
 
   const handlePriceGrowthRateChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       priceGrowthRate: parseFloat(event.target.value),
     });
   };
 
   const handleCapitalGainsTaxPercentChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       capitalGainsTaxPercent: parseFloat(event.target.value),
     });
   };
 
   const sellApartmentWhenLoanIsOverChange = (event) => {
-    props.updateInputs({
+    props.updateStrategy({
       ...strategy,
       sellApartmentWhenLoanIsOver: !strategy.sellApartmentWhenLoanIsOver,
     });

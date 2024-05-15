@@ -1,5 +1,4 @@
 import "./App.css"; // Make sure this path matches your actual CSS file location
-import { getRentIncomeAfterTaxes } from "./InvestmentUtils";
 
 const InvestmentSummary = (props) => {
   const results = props.results;
@@ -142,9 +141,7 @@ const InvestmentSummary = (props) => {
               {apartment.netRentIncome.toLocaleString()}
             </div>
             <div className="cell">
-              {getRentIncomeAfterTaxes(
-                apartment.netRentIncome
-              ).toLocaleString()}
+              {apartment.netRentIncomeAfterTaxes.toLocaleString()}
             </div>
             <div className="cell">
               {apartment.priceAfterGrowth.toLocaleString()}

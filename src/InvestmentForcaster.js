@@ -131,7 +131,6 @@ const InvestmentForcaster = (props) => {
   };
 
   const calculateRentIncome = (apartment) => {
-    debugger;
     return (
       (apartment.priceAfterGrowth *
         (apartment.strategy.netYearlyRentIncomeInPercent / 100)) /
@@ -153,7 +152,7 @@ const InvestmentForcaster = (props) => {
     apartment.initialPrice *
     Math.pow(
       1 + apartment.strategy.priceGrowthRate / 100,
-      (apartment.boughtMonth - month) / 12
+      Math.floor((month - apartment.boughtMonth) / 12)
     );
 
   const updateRemainingPrinciple = (apartment, month) => {
@@ -211,6 +210,10 @@ const InvestmentForcaster = (props) => {
   };
 
   const updateApartmentsPrice = (apartments, month) => {
+    if (month === 180) {
+      debugger;
+    }
+
     apartments.forEach((apartment) => {
       apartment.priceAfterGrowth = getApartmentPriceAfterGrowth(
         apartment,
@@ -460,191 +463,6 @@ const InvestmentForcaster = (props) => {
       moneyLeftWithCoveringLoans,
     });
   };
-
-  //   while (month <= totalMonths) {
-  //     while (money + loanAmount >= apartmentPrice) {
-  //       let yearsHeld = (totalMonths + 1 - month) / 12;
-  //       if (inputs.sellApartmentWhenLoanIsOver) {
-  //         yearsHeld = Math.min(loanTimeYears, yearsHeld);
-  //       }
-
-  //       let priceAfterGrowth = getApartmentPriceAfterGrowth(yearsHeld);
-
-  //       let newApartment = {
-  //         id: crypto.randomUUID(),
-  //         boughtMonth: month,
-  //         loanEndTime: loanEndTime,
-  //         remainingPrincipal,
-  //         payments,
-  //         price: apartmentPrice,
-  //         priceAfterGrowth: priceAfterGrowth,
-  //         monthlyLoanPayment,
-  //         netRentIncome: strategy.netRentIncome,
-  //         pricieAfterTaxes: apartment.price,
-  //       };
-
-  //       apartments.push(newApartment);
-
-  //       money -= apartmentPrice - loanAmount;
-
-  //       if (apartments.length > maxApartments) {
-  //         setError(`Inputs are leading to more than 1000 apartments`);
-  //         return;
-  //       }
-  //     }
-
-  //     let numOfSoldApartments = 0;
-  //     let totalMoneyFromSoldApartments = 0;
-  //     let totalMoneyFromSoldApartmentsAfterTaxes = 0;
-  //     apartmentsToSell = getApartmentsToSell(apartments, month);
-  //     if (investmentStatus.sellApartmentWhenLoanIsOver) {
-  //       apartments.forEach((apartment) => {
-  //         if (isLoanOver(apartment, month)) {
-  //           numOfSoldApartments++;
-  //           totalMoneyFromSoldApartments += apartment.priceAfterGrowth;
-  //           totalMoneyFromSoldApartmentsAfterTaxes =
-  //             getApartmentPriceAfterTaxes(apartment);
-  //         }
-  //       });
-  //       apartments = apartments.filter(
-  //         (apartment) => !isLoanOver(apartment, month)
-  //       );
-  //     }
-
-  //     money += totalMoneyFromSoldApartmentsAfterTaxes;
-
-  //     updateApartmentMonthlyIncome(month, apartments);
-  //     const incomeFromRent = apartments.reduce(
-  //       (sum, apt) => sum + apt.netRentIncome,
-  //       0
-  //     );
-
-  //     const totalMonthlyLoansPayments = apartments.reduce(
-  //       (sum, apartment) => sum + getLoanMonthlyPayment(apartment, month),
-  //       0
-  //     );
-
-  //     const incomeFromRentAfterTaxes = getRentIncomeAfterTaxes(
-  //       incomeFromRent,
-  //       inputs.yearlyRentTaxesInPercent
-  //     );
-
-  //     let totalIncome =
-  //       monthlyContribution +
-  //       incomeFromRentAfterTaxes -
-  //       totalMonthlyLoansPayments;
-
-  //     money += totalIncome;
-
-  //     monthlyDetails.push({
-  //       month,
-  //       money,
-  //       totalIncome,
-  //       incomeFromRent,
-  //       incomeFromRentAfterTaxes,
-  //       totalMonthlyLoansPayments,
-  //       numOfApartments: apartments.length,
-  //       numOfSoldApartments,
-  //       totalMoneyFromSoldApartments,
-  //       totalMoneyFromSoldApartmentsAfterTaxes,
-  //     });
-
-  //     month++;
-  //   }
-  //   updateApartmentMonthlyIncome(month, apartments);
-
-  //   const totalValue = apartments.reduce(
-  //     (acc, apt) => acc + apt.priceAfterGrowth,
-  //     0
-  //   );
-  //   const totalValueAfterTaxes = apartments.reduce(
-  //     (acc, apt) => acc + getApartmentPriceAfterTaxes(apt),
-  //     0
-  //   );
-
-  //   const totalMonthlyLoansPayments = apartments.reduce(
-  //     (sum, apartment) => sum + getLoanMonthlyPayment(apartment, month),
-  //     0
-  //   );
-
-  //   const totalRentIncome = apartments
-  //     .map((a) => a.netRentIncome)
-  //     .reduce((a, b) => a + b, 0);
-  //   const totalLoansPrincipleLeft = apartments.reduce(
-  //     (acc, apt) => acc + apt.remainingPrincipal,
-  //     0
-  //   );
-
-  //   const totalMonthlyPassiveIncome =
-  //     totalRentIncome - totalMonthlyLoansPayments;
-
-  //   const totalMonthlyPassiveIncomeAfterTaxes =
-  //     getRentIncomeAfterTaxes(
-  //       totalRentIncome,
-  //       inputs.yearlyRentTaxesInPercent
-  //     ) - totalMonthlyLoansPayments;
-
-  //   let numOfApartmentsToSellForCoveringLoan = 0;
-  //   let apartmentsToSellTotalPrice = 0;
-  //   let apartmentsToSellTotalPriceAfterTaxes = 0;
-  //   for (let i = 0; i < apartments.length; i++) {
-  //     if (
-  //       apartmentsToSellTotalPriceAfterTaxes + money >=
-  //       totalLoansPrincipleLeft
-  //     ) {
-  //       break;
-  //     }
-  //     apartmentsToSellTotalPrice += apartments[i].priceAfterGrowth;
-  //     apartmentsToSellTotalPriceAfterTaxes += getApartmentPriceAfterTaxes(
-  //       apartments[i]
-  //     );
-  //     numOfApartmentsToSellForCoveringLoan++;
-  //   }
-  //   const totalApartmentsAfterSellingApartmentsForCoveringLoans =
-  //     apartments.length - numOfApartmentsToSellForCoveringLoan;
-  //   const moneyLeftWithCoveringLoans =
-  //     apartmentsToSellTotalPriceAfterTaxes + money - totalLoansPrincipleLeft;
-
-  //   const totalMonthlyPassiveIncomeAfterCoveringLoans = apartments
-  //     .slice(numOfApartmentsToSellForCoveringLoan)
-  //     .map((apartment) =>
-  //       calculateRentIncome(totalMonths + 1, apartment.boughtMonth)
-  //     )
-  //     .reduce((a, b) => a + b, 0);
-  //   const totalMonthlyPassiveIncomeAfterCoveringLoansAfterTaxes =
-  //     getRentIncomeAfterTaxes(
-  //       totalMonthlyPassiveIncomeAfterCoveringLoans,
-  //       inputs.yearlyRentTaxesInPercent
-  //     );
-
-  //   const totalValueAfterCoveringLoans = apartments
-  //     .slice(numOfApartmentsToSellForCoveringLoan)
-  //     .reduce((acc, apt) => acc + apt.priceAfterGrowth, 0);
-
-  //   const totalValueAfterCoveringLoansAfterTaxes = apartments
-  //     .slice(numOfApartmentsToSellForCoveringLoan)
-  //     .reduce((acc, apt) => acc + getApartmentPriceAfterTaxes(apt), 0);
-
-  //   setResults({
-  //     totalApartments: apartments.length,
-  //     totalValue,
-  //     totalMonthlyPassiveIncome,
-  //     totalMonthlyPassiveIncomeAfterTaxes,
-  //     totalValueAfterTaxes,
-  //     totalValueAfterCoveringLoans,
-  //     totalValueAfterCoveringLoansAfterTaxes,
-  //     totalMonthlyPassiveIncomeAfterCoveringLoansAfterTaxes,
-  //     apartmentsToSellTotalPrice,
-  //     apartmentsToSellTotalPriceAfterTaxes,
-  //     totalMonthlyPassiveIncomeAfterCoveringLoans,
-  //     totalLoansPrincipleLeft,
-  //     apartments,
-  //     money: money,
-  //     monthlyDetails: monthlyDetails,
-  //     totalApartmentsAfterSellingApartmentsForCoveringLoans,
-  //     moneyLeftWithCoveringLoans,
-  //   });
-  // };
 
   return (
     <div>

@@ -136,7 +136,7 @@ const InvestmentSummary = (props) => {
               {apartment.remainingPrincipal.toLocaleString()}
             </div>
             <div className="cell">
-              {apartment.loanMonthlyPayment.toLocaleString()}
+              {apartment.monthlyLoanPayment.toLocaleString()}
             </div>
             <div className="cell">
               {apartment.netRentIncome.toLocaleString()}

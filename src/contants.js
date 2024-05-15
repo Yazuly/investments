@@ -2,7 +2,7 @@ export class Constants {
   static DEFAULT_STRATEGY_INPUTS = {
     initialMoney: 200000,
     apartmentPrice: 400000,
-    netYearlyRentIncomeInPercent: 5,
+    netYearlyRentIncomeInPercent: 6,
     yearlyRentTaxesInPercent: 10,
     loanAmountInPercent: 50,
     loanInterestRate: 6,

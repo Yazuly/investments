@@ -36,7 +36,6 @@ const InvestmentForcaster = (props) => {
 
   useEffect(() => {
     const errorMessage = validateInputs();
-    console.log(errorMessage);
     if (errorMessage) {
       setError(errorMessage);
     } else {
@@ -131,18 +130,18 @@ const InvestmentForcaster = (props) => {
     return payments;
   };
 
-  const calculateRentIncome = (apartment, month) => {
-    const yearsHeld = Math.floor((month - apartment.boughtMonth) / 12);
+  const calculateRentIncome = (apartment) => {
+    debugger;
     return (
-      (getApartmentPriceAfterGrowth(yearsHeld) *
+      (apartment.priceAfterGrowth *
         (apartment.strategy.netYearlyRentIncomeInPercent / 100)) /
       12
     );
   };
 
-  const updateApartmentsMonthlyIncome = (apartments, month) => {
+  const updateApartmentsMonthlyIncome = (apartments) => {
     apartments.forEach((apartment) => {
-      apartment.netRentIncome = calculateRentIncome(apartment, month);
+      apartment.netRentIncome = calculateRentIncome(apartment);
       apartment.netRentIncomeAfterTaxes = getRentIncomeAfterTaxes(
         apartment.netRentIncome,
         apartment.strategy.yearlyRentTaxesInPercent
@@ -159,7 +158,7 @@ const InvestmentForcaster = (props) => {
 
   const updateRemainingPrinciple = (apartment, month) => {
     if (isLoanOver(apartment, month)) {
-      this.apartment.remainingPrincipal = 0;
+      apartment.remainingPrincipal = 0;
       return;
     }
 
@@ -175,16 +174,17 @@ const InvestmentForcaster = (props) => {
 
   const buyApartment = (investmentStatus) => {
     let strategy = investmentStatus.strategy;
+    let loanAmount = getLoanAmount(strategy);
     const { monthlyLoanPayment, monthlyRate, numberOfPayments } =
       calculateLoanPaymentsDetails(
-        strategy.loanAmount,
+        loanAmount,
         strategy.loanInterestRate,
         strategy.loanTimeYears
       );
 
     let loanEndTime = investmentStatus.month - 1 + strategy.loanTimeYears * 12;
     const payments = calculateLoanPayments(
-      strategy.loanAmount,
+      loanAmount,
       monthlyLoanPayment,
       monthlyRate,
       numberOfPayments
@@ -206,8 +206,8 @@ const InvestmentForcaster = (props) => {
       ),
     };
     updateRemainingPrinciple(apartment, investmentStatus.month);
-    this.apartments.push(apartment);
-    investmentStatus.money -= strategy.apartmentPrice - strategy.loanAmount;
+    investmentStatus.apartments.push(apartment);
+    investmentStatus.money -= strategy.apartmentPrice - getLoanAmount(strategy);
   };
 
   const updateApartmentsPrice = (apartments, month) => {
@@ -228,10 +228,7 @@ const InvestmentForcaster = (props) => {
 
   const updateApartments = (investmentStatus) => {
     updateApartmentsPrice(investmentStatus.apartments, investmentStatus.month);
-    updateApartmentsMonthlyIncome(
-      investmentStatus.apartments,
-      investmentStatus.month
-    );
+    updateApartmentsMonthlyIncome(investmentStatus.apartments);
     updateApartmentsRemainingPrinciple(
       investmentStatus.apartments,
       investmentStatus.month
@@ -243,7 +240,7 @@ const InvestmentForcaster = (props) => {
   };
 
   const updateInvestmentStatus = (investmentStatus) => {
-    updateApartments(investmentStatus.apartments, investmentStatus.month);
+    updateApartments(investmentStatus);
   };
 
   const getApartmentsToSell = (apartments, month) => {
@@ -254,7 +251,14 @@ const InvestmentForcaster = (props) => {
     );
   };
 
+  const getLoanAmount = (strategy) =>
+    (strategy.loanAmountInPercent / 100) * strategy.apartmentPrice;
+
   const simulateInvestment = () => {
+    if (!strategies || strategies.length === 0) {
+      return;
+    }
+
     let monthlyDetails = [
       {
         month: 0,
@@ -282,8 +286,7 @@ const InvestmentForcaster = (props) => {
     strategies.forEach((strategy) => {
       investmentStatus.strategy = strategy;
       investmentStatus.money += strategy.initialMoney;
-      let loanAmount =
-        (strategy.loanAmountInPercent / 100) * strategy.apartmentPrice;
+      let loanAmount = getLoanAmount(strategy);
       let totalMonths = strategy.investmentTimeYears * 12;
       for (let i = 0; i < totalMonths; i++) {
         if (investmentStatus.money + loanAmount >= strategy.apartmentPrice) {
@@ -293,76 +296,76 @@ const InvestmentForcaster = (props) => {
             return;
           }
         }
+
         updateInvestmentStatus(investmentStatus);
+        let numOfSoldApartments = 0;
+
+        let apartmentsToSell = getApartmentsToSell(
+          investmentStatus.apartments,
+          investmentStatus.month
+        );
+        numOfSoldApartments = apartmentsToSell.length;
+        let apartmentsToSellIds = apartmentsToSell.map(
+          (apartment) => apartment.id
+        );
+
+        investmentStatus.apartments = investmentStatus.apartments.filter(
+          (apartment) => !apartmentsToSellIds.includes(apartment.id)
+        );
+
+        let totalMoneyFromSoldApartments = apartmentsToSell.reduce(
+          (sum, apartment) => sum + apartment.priceAfterGrowth,
+          0
+        );
+        let totalMoneyFromSoldApartmentsAfterTaxes = apartmentsToSell.reduce(
+          (sum, apartment) => sum + apartment.pricieAfterTaxes,
+          0
+        );
+
+        investmentStatus.money += totalMoneyFromSoldApartmentsAfterTaxes;
+
+        const incomeFromRent = investmentStatus.apartments.reduce(
+          (sum, apartment) => sum + apartment.netRentIncome,
+          0
+        );
+
+        const totalMonthlyLoansPayments = investmentStatus.apartments.reduce(
+          (sum, apartment) => sum + apartment.monthlyLoanPayment,
+          0
+        );
+
+        const incomeFromRentAfterTaxes = investmentStatus.apartments.reduce(
+          (sum, apartment) => sum + apartment.netRentIncomeAfterTaxes,
+          0
+        );
+
+        let totalIncome =
+          investmentStatus.strategy.monthlyContribution +
+          incomeFromRentAfterTaxes -
+          totalMonthlyLoansPayments;
+
+        investmentStatus.money += totalIncome;
+
+        monthlyDetails.push({
+          month: investmentStatus.month,
+          money: investmentStatus.money,
+          totalIncome,
+          incomeFromRent,
+          incomeFromRentAfterTaxes,
+          totalMonthlyLoansPayments,
+          numOfApartments: investmentStatus.apartments.length,
+          numOfSoldApartments,
+          totalMoneyFromSoldApartments,
+          totalMoneyFromSoldApartmentsAfterTaxes,
+        });
+
+        investmentStatus.month++;
       }
-
-      let numOfSoldApartments = 0;
-
-      let apartmentsToSell = getApartmentsToSell(
-        investmentStatus.apartments,
-        investmentStatus.month
-      );
-      numOfSoldApartments = apartmentsToSell.length;
-      let apartmentsToSellIds = apartmentsToSell.map(
-        (apartment) => apartment.id
-      );
-
-      investmentStatus.apartments = investmentStatus.apartments.filter(
-        (apartment) => !apartmentsToSellIds.includes(apartment.id)
-      );
-
-      let totalMoneyFromSoldApartments = apartmentsToSell.reduce(
-        (sum, apartment) => sum + apartment.priceAfterGrowth,
-        0
-      );
-      let totalMoneyFromSoldApartmentsAfterTaxes = apartmentsToSell.reduce(
-        (sum, apartment) => sum + apartment.pricieAfterTaxes,
-        0
-      );
-
-      investmentStatus.money += totalMoneyFromSoldApartmentsAfterTaxes;
-
-      const incomeFromRent = investmentStatus.apartments.reduce(
-        (sum, apt) => sum + apt.netRentIncome,
-        0
-      );
-
-      const totalMonthlyLoansPayments = investmentStatus.reduce(
-        (sum, apartment) => sum + apartment.monthlyLoanPayment,
-        0
-      );
-
-      const incomeFromRentAfterTaxes = investmentStatus.apartments.reduce(
-        (sum, apartment) => sum + apartment.netRentIncomeAfterTaxes,
-        0
-      );
-
-      let totalIncome =
-        investmentStatus.strategy.monthlyContribution +
-        incomeFromRentAfterTaxes -
-        totalMonthlyLoansPayments;
-
-      investmentStatus.money += totalIncome;
-
-      monthlyDetails.push({
-        month: investmentStatus.month,
-        money: investmentStatus.money,
-        totalIncome,
-        incomeFromRent,
-        incomeFromRentAfterTaxes,
-        totalMonthlyLoansPayments,
-        numOfApartments: investmentStatus.apartments.length,
-        numOfSoldApartments,
-        totalMoneyFromSoldApartments,
-        totalMoneyFromSoldApartmentsAfterTaxes,
-      });
-
-      investmentStatus.month++;
     });
 
     let apartments = investmentStatus.apartments;
 
-    updateApartments(investmentStatus);
+    updateInvestmentStatus(investmentStatus);
 
     const totalValue = apartments.reduce(
       (sum, apartment) => sum + apartment.priceAfterGrowth,

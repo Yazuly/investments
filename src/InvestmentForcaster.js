@@ -190,6 +190,7 @@ const InvestmentForcaster = (props) => {
     );
 
     let apartment = {
+      id: crypto.randomUUID(),
       strategy: strategy,
       boughtMonth: investmentStatus.month,
       loanEndTime: loanEndTime,
@@ -210,10 +211,6 @@ const InvestmentForcaster = (props) => {
   };
 
   const updateApartmentsPrice = (apartments, month) => {
-    if (month === 180) {
-      debugger;
-    }
-
     apartments.forEach((apartment) => {
       apartment.priceAfterGrowth = getApartmentPriceAfterGrowth(
         apartment,
@@ -292,7 +289,7 @@ const InvestmentForcaster = (props) => {
       let loanAmount = getLoanAmount(strategy);
       let totalMonths = strategy.investmentTimeYears * 12;
       for (let i = 0; i < totalMonths; i++) {
-        if (investmentStatus.money + loanAmount >= strategy.apartmentPrice) {
+        while (investmentStatus.money + loanAmount >= strategy.apartmentPrice) {
           buyApartment(investmentStatus);
           if (investmentStatus.apartments.length > maxApartments) {
             setError(`Inputs are leading to more than 1000 apartments`);

@@ -25,7 +25,6 @@ const InvestmentForcaster = (props) => {
     monthlyDetails: [],
     totalApartmentsAfterSellingApartmentsForCoveringLoans: 0,
     moneyLeftWithCoveringLoans: 0,
-    sellApartmentWhenLoanIsOver: false,
   });
 
   const maxApartments = 300;
@@ -130,17 +129,24 @@ const InvestmentForcaster = (props) => {
     return payments;
   };
 
-  const calculateRentIncome = (apartment) => {
+  const calculateRentIncome = (apartment, month) => {
+    const yearsHeald = Math.floor((month - apartment.boughtMonth) / 12);
+    const growthFactor = Math.pow(
+      1 + apartment.strategy.netYearlyRentIncomeGrowthInPercent / 100,
+      yearsHeald
+    );
+
     return (
-      (apartment.priceAfterGrowth *
-        (apartment.strategy.netYearlyRentIncomeInPercent / 100)) /
+      (growthFactor *
+        (apartment.initialPrice *
+          (apartment.strategy.netYearlyRentIncomeInPercent / 100))) /
       12
     );
   };
 
-  const updateApartmentsMonthlyIncome = (apartments) => {
+  const updateApartmentsMonthlyIncome = (apartments, month) => {
     apartments.forEach((apartment) => {
-      apartment.netRentIncome = calculateRentIncome(apartment);
+      apartment.netRentIncome = calculateRentIncome(apartment, month);
       apartment.netRentIncomeAfterTaxes = getRentIncomeAfterTaxes(
         apartment.netRentIncome,
         apartment.strategy.yearlyRentTaxesInPercent
@@ -228,7 +234,10 @@ const InvestmentForcaster = (props) => {
 
   const updateApartments = (investmentStatus) => {
     updateApartmentsPrice(investmentStatus.apartments, investmentStatus.month);
-    updateApartmentsMonthlyIncome(investmentStatus.apartments);
+    updateApartmentsMonthlyIncome(
+      investmentStatus.apartments,
+      investmentStatus.month
+    );
     updateApartmentsRemainingPrinciple(
       investmentStatus.apartments,
       investmentStatus.month

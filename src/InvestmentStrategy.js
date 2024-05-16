@@ -31,6 +31,13 @@ const InvestmentStrategy = (props) => {
     });
   };
 
+  const handleNetYearlyRentIncomeGrowthInPercent = (event) => {
+    props.updateStrategy({
+      ...strategy,
+      netYearlyRentIncomeGrowthInPercent: parseFloat(event.target.value),
+    });
+  };
+
   const handleYearlyRentTaxesInPercentChange = (event) => {
     props.updateStrategy({
       ...strategy,
@@ -145,6 +152,22 @@ const InvestmentStrategy = (props) => {
               name="netYearlyRentIncomeInPercent"
               value={strategy.netYearlyRentIncomeInPercent}
               onChange={handleNetYearlyRentIncomeInPercentChange}
+            />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="netYearlyRentIncomeGrowthInPercent">
+              Net yearly rent income growth in percent
+            </label>
+          </td>
+          <td>
+            <input
+              type="number"
+              id="netYearlyRentIncomeGrowthInPercent"
+              name="netYearlyRentIncomeGrowthInPercent"
+              value={strategy.netYearlyRentIncomeGrowthInPercent}
+              onChange={handleNetYearlyRentIncomeGrowthInPercent}
             />
           </td>
         </tr>

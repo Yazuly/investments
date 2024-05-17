@@ -1,31 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import "./App.css"; // Make sure this path matches your actual CSS file location
-import InvestmentSummary from "./InvestmentSummary";
 import {
   getLoanMonthlyPayment,
   getRentIncomeAfterTaxes,
 } from "./InvestmentUtils";
+import { Constants } from "./contants";
 
 const InvestmentForcaster = (props) => {
   const onResults = props.onResults;
   const [strategies, setStrategies] = useState([]);
-  const [results, setResults] = useState({
-    totalApartments: 0,
-    totalValue: 0,
-    totalValueAfterTaxes: 0,
-    totalValueAfterCoveringLoans: 0,
-    totalValueAfterCoveringLoansAfterTaxes: 0,
-    totalMonthlyPassiveIncome: 0,
-    totalMonthlyPassiveIncomeAfterTaxes: 0,
-    totalMonthlyPassiveIncomeAfterCoveringLoans: 0,
-    totalMonthlyPassiveIncomeAfterCoveringLoansAfterTaxes: 0,
-    totalLoansLeft: 0,
-    apartments: [],
-    monthlyDetails: [],
-    totalApartmentsAfterSellingApartmentsForCoveringLoans: 0,
-    moneyLeftWithCoveringLoans: 0,
-  });
+  const [results, setResults] = useState(Constants.DEFAULT_SUMMARY_RESULTS);
 
   const maxApartments = 300;
 
@@ -53,8 +38,9 @@ const InvestmentForcaster = (props) => {
     setError(validateOutputs());
   }, [results]); // Dependency array includes `inputs`
 
-  const [showSummary, setShowSummary] = useState(true);
-  const toggleSummary = () => setShowSummary(!showSummary);
+  useEffect(() => {
+    props.onError(error);
+  }, [error]); // Dependency array includes `inputs`
 
   const validateInputs = () => {
     const nullKeys = strategies.map((strategy) =>
@@ -265,6 +251,7 @@ const InvestmentForcaster = (props) => {
 
   const simulateInvestment = () => {
     if (!strategies || strategies.length === 0) {
+      setResults(Constants.DEFAULT_SUMMARY_RESULTS);
       return;
     }
 
@@ -469,23 +456,6 @@ const InvestmentForcaster = (props) => {
       moneyLeftWithCoveringLoans,
     });
   };
-
-  return (
-    <div>
-      <div className="error-message">
-        {error && <p className="error-text">Error: {error}</p>}
-        {!error && <p className="valid-text">Valid Inputs</p>}
-      </div>
-      {!error && (
-        <>
-          <button onClick={toggleSummary}>Show Summary</button>
-          {showSummary && (
-            <InvestmentSummary results={results}></InvestmentSummary>
-          )}
-        </>
-      )}
-    </div>
-  );
 };
 
 export default InvestmentForcaster;
